@@ -67,7 +67,7 @@ function FeatureItem({
         }}
       >
         <Icon className="w-5 h-5" style={{ color: "var(--color-fg-muted)" }} />
-      </div>
+          </div>
       <div>
         <h3
           className="font-semibold text-base mb-1"
@@ -81,8 +81,8 @@ function FeatureItem({
         >
           {description}
         </p>
-      </div>
-    </div>
+          </div>
+        </div>
   );
 }
 
@@ -388,11 +388,11 @@ function LandingPage() {
             className="text-2xl sm:text-3xl font-bold mb-4"
             style={{ color: "var(--color-fg-default)" }}
           >
-            Ready to get started?
-          </h2>
+              Ready to get started?
+            </h2>
           <p className="mb-8" style={{ color: "var(--color-fg-muted)" }}>
-            Add weighted approvals to your repository in minutes.
-          </p>
+              Add weighted approvals to your repository in minutes.
+            </p>
           <Link
             to="/docs"
             className="btn-primary inline-flex items-center gap-2"
@@ -410,15 +410,15 @@ function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-sm" style={{ color: "var(--color-fg-subtle)" }}>
-            MIT License · Made with ❤️ by{" "}
+            MIT License · Made by{" "}
             <a
-              href="https://github.com/weighted-dev"
+              href="https://tanstack.com"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
               style={{ color: "var(--color-fg-muted)" }}
             >
-              weighted-dev
+              TanStack
             </a>
           </p>
         </div>

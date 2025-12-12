@@ -304,7 +304,7 @@ function DemoContent({
               }}
             >
               {isPassing ? "Passing" : "In progress"}
-            </span>
+          </span>
           </div>
           <div
             className="text-xs mt-0.5"
@@ -324,7 +324,7 @@ function DemoContent({
             <ChevronRight className="w-4 h-4" />
           )}
         </button>
-      </div>
+        </div>
 
       {expanded && (
         <div className="flex flex-col lg:flex-row">
@@ -480,7 +480,7 @@ function DemoContent({
                 <span style={{ color: "var(--color-fg-subtle)" }}>→</span>
                 <span style={{ color: "var(--color-success-fg)" }}>
                   required: {requiredTotal}
-                </span>
+              </span>
               </div>
             </div>
 
@@ -618,12 +618,12 @@ function DemoContent({
                           </span>
                         </>
                       )}
-                    </div>
+            </div>
                   </div>
                 ))}
-              </div>
+          </div>
 
-              {/* Progress bar */}
+          {/* Progress bar */}
               <div className="mt-4">
                 <div
                   className="h-2 rounded-full overflow-hidden"
@@ -637,9 +637,9 @@ function DemoContent({
                         ? "var(--color-success-emphasis)"
                         : "var(--color-attention-emphasis)",
                     }}
-                  />
-                </div>
-              </div>
+              />
+            </div>
+          </div>
 
               {/* Check status banner */}
               <div
@@ -649,19 +649,19 @@ function DemoContent({
                     ? "var(--color-success-subtle)"
                     : "var(--color-attention-subtle)",
                   border: `1px solid ${
-                    isPassing
+                isPassing
                       ? "rgba(46, 160, 67, 0.4)"
                       : "rgba(187, 128, 9, 0.4)"
                   }`,
                 }}
-              >
-                {isPassing ? (
+          >
+            {isPassing ? (
                   <Check
                     className="w-4 h-4"
                     style={{ color: "var(--color-success-fg)" }}
                     strokeWidth={2.5}
                   />
-                ) : (
+            ) : (
                   <Clock
                     className="w-4 h-4"
                     style={{ color: "var(--color-attention-fg)" }}
