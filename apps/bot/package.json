@@ -1,0 +1,10 @@
+{
+  "name": "@weighted-approvals/bot",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Bot for weighted-approvals",
+  "scripts": {
+    "dev": "echo 'No dev script configured yet'",
+    "build": "echo 'No build script configured yet'"
+  }
+}

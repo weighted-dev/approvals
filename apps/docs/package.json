@@ -1,0 +1,11 @@
+{
+  "name": "@weighted-approvals/docs",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Documentation site for weighted-approvals",
+  "scripts": {
+    "dev": "echo 'No dev script configured yet'",
+    "build": "echo 'No build script configured yet'"
+  }
+}
+

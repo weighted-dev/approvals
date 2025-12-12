@@ -1,25 +1,16 @@
 {
-  "name": "weighted-approvals",
+  "name": "weighted-approvals-monorepo",
   "private": true,
-  "version": "1.1.5",
-  "description": "Gerrit/Jenkins-style weighted approvals enforced via a required GitHub Check Run.",
-  "license": "MIT",
-  "type": "commonjs",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "bundle": "ncc build lib/index.js -o dist --minify",
-    "build:all": "npm run build && npm run bundle",
-    "build:watch": "tsc -p tsconfig.json -w",
-    "test:local": "node dist/index.js",
-    "validate:examples": "node scripts/validate-examples.js",
-    "test": "npm run build && node --test tests-node"
-  },
-  "dependencies": {
-    "yaml": "^2.6.1"
+    "build": "pnpm --filter @weighted-approvals/action build:all",
+    "test": "pnpm --filter @weighted-approvals/action test",
+    "dev": "pnpm --parallel --filter './apps/*' dev"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "@vercel/ncc": "^0.38.3",
     "typescript": "^5.7.0"
-  }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.15.0"
 }
