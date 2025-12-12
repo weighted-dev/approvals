@@ -27,5 +27,3 @@ jobs:
           label_prefix: "wa:+"
           comment_directive_prefix: "ma:"
           comment_trusted_author_associations: "OWNER,MEMBER,COLLABORATOR"
-
-
