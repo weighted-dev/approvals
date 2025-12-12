@@ -7,11 +7,17 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "bundle": "ncc build lib/index.js -o dist --minify",
+    "build:all": "npm run build && npm run bundle",
     "build:watch": "tsc -p tsconfig.json -w",
     "test:local": "node dist/index.js"
   },
+  "dependencies": {
+    "yaml": "^2.6.1"
+  },
   "devDependencies": {
     "@types/node": "^22.10.0",
+    "@vercel/ncc": "^0.38.3",
     "typescript": "^5.7.0"
   }
 }

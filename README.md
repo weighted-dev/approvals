@@ -164,7 +164,7 @@ Source lives in `src/` and is written in TypeScript. The published GitHub Action
 
 ```bash
 npm install
-npm run build
+npm run build:all
 ```
 
 - Commit `dist/` changes when releasing a new version/tag.
