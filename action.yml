@@ -1,0 +1,40 @@
+name: weighted-approvals
+description: Gerrit/Jenkins-style weighted approvals enforced via a required GitHub Check Run.
+author: weighted-approvals
+
+inputs:
+  token:
+    description: GitHub token (GITHUB_TOKEN or PAT). PAT needed for org/team membership checks.
+    required: true
+  config_path:
+    description: Path to config file in the base repo (read from base ref).
+    required: false
+    default: .github/weighted-approvals.yml
+  check_name:
+    description: Name of the created Check Run.
+    required: false
+    default: weighted-approvals
+  label_prefix:
+    description: Optional label prefix to override required total, e.g. 'wa:+' matches labels like 'wa:+3'.
+    required: false
+    default: wa:+
+  comment_directive_prefix:
+    description: Optional PR comment directive prefix, e.g. 'ma:' enables directives like 'ma:@org/team +2'.
+    required: false
+    default: ma:
+  comment_trusted_author_associations:
+    description: Comma-separated author_association values allowed to set comment directives (e.g. OWNER,MEMBER,COLLABORATOR).
+    required: false
+    default: OWNER,MEMBER,COLLABORATOR
+  fail_on_error:
+    description: If true, the check fails on internal errors; if false, it reports neutral.
+    required: false
+    default: "true"
+  debug:
+    description: Enable verbose logging.
+    required: false
+    default: "false"
+
+runs:
+  using: node20
+  main: dist/index.js

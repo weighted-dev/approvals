@@ -1,0 +1,17 @@
+{
+  "name": "weighted-approvals",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Gerrit/Jenkins-style weighted approvals enforced via a required GitHub Check Run.",
+  "license": "MIT",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:watch": "tsc -p tsconfig.json -w",
+    "test:local": "node dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

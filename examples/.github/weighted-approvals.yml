@@ -1,0 +1,28 @@
+weights:
+  users:
+    # “+2 rights”: a single approval from Alice can satisfy required_total=2
+    alice: 2
+    bob: 1
+
+  teams:
+    # Team weights (requires token permissions to check org/team membership)
+    my-org/platform-reviewers: 2
+    my-org/app-reviewers: 1
+
+rules:
+  # Default app code requires +2 total
+  - paths:
+      - "src/**"
+      - "lib/**"
+    required_total: 2
+
+  # Infrastructure changes require +3 total, and only platform reviewers can satisfy it
+  - paths:
+      - "infra/**"
+      - ".github/**"
+    required_total: 3
+    allowed:
+      teams:
+        - my-org/platform-reviewers
+
+

@@ -1,0 +1,35 @@
+name: weighted-approvals (self-test)
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, labeled, unlabeled, ready_for_review]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  issue_comment:
+    types: [created, edited, deleted]
+
+permissions:
+  contents: read
+  pull-requests: read
+  issues: read
+  checks: write
+
+jobs:
+  wa:
+    runs-on: ubuntu-latest
+    steps:
+      # Needed so `uses: ./` can find action.yml + dist/
+      - uses: actions/checkout@v4
+
+      - name: Weighted approvals check (local action)
+        uses: ./
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config_path: .github/weighted-approvals.yml
+          check_name: weighted-approvals
+          label_prefix: wa:+
+          comment_directive_prefix: ma:
+          comment_trusted_author_associations: OWNER,MEMBER,COLLABORATOR
+          debug: "false"
+
+
