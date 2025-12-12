@@ -69,7 +69,7 @@ function FeatureItem({
         }}
       >
         <Icon className="w-5 h-5" style={{ color: "var(--color-fg-muted)" }} />
-          </div>
+      </div>
       <div>
         <h3
           className="font-semibold text-base mb-1"
@@ -83,8 +83,8 @@ function FeatureItem({
         >
           {description}
         </p>
-          </div>
-        </div>
+      </div>
+    </div>
   );
 }
 
@@ -136,15 +136,15 @@ function DemoToggle() {
             className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all"
             style={{
               backgroundColor:
-                mode === "rules" ? "var(--color-canvas-default)" : "transparent",
+                mode === "rules"
+                  ? "var(--color-canvas-default)"
+                  : "transparent",
               color:
                 mode === "rules"
                   ? "var(--color-fg-default)"
                   : "var(--color-fg-muted)",
               boxShadow:
-                mode === "rules"
-                  ? "0 1px 3px rgba(0,0,0,0.1)"
-                  : "none",
+                mode === "rules" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
             }}
           >
             <FolderTree className="w-4 h-4" />
@@ -160,10 +160,7 @@ function DemoToggle() {
                 mode === "ai"
                   ? "var(--color-fg-default)"
                   : "var(--color-fg-muted)",
-              boxShadow:
-                mode === "ai"
-                  ? "0 1px 3px rgba(0,0,0,0.1)"
-                  : "none",
+              boxShadow: mode === "ai" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
             }}
           >
             <Sparkles className="w-4 h-4" />
@@ -460,11 +457,11 @@ function LandingPage() {
             className="text-2xl sm:text-3xl font-bold mb-4"
             style={{ color: "var(--color-fg-default)" }}
           >
-              Ready to get started?
-            </h2>
+            Ready to get started?
+          </h2>
           <p className="mb-8" style={{ color: "var(--color-fg-muted)" }}>
-              Add weighted approvals to your repository in minutes.
-            </p>
+            Add weighted approvals to your repository in minutes.
+          </p>
           <Link
             to="/docs"
             className="btn-primary inline-flex items-center gap-2"
@@ -482,15 +479,15 @@ function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-sm" style={{ color: "var(--color-fg-subtle)" }}>
-            MIT License · Made by{" "}
+            MIT License · Made with ❤️ by{" "}
             <a
-              href="https://tanstack.com"
+              href="https://x.com/SeanBrydon13"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
               style={{ color: "var(--color-fg-muted)" }}
             >
-              TanStack
+              Sean Brydon
             </a>
           </p>
         </div>
