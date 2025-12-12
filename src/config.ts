@@ -7,6 +7,7 @@ export class ConfigLoader {
     const weights = raw.weights && typeof raw.weights === "object" ? raw.weights : {};
     const users = (weights.users && typeof weights.users === "object" ? weights.users : {}) || {};
     const teams = (weights.teams && typeof weights.teams === "object" ? weights.teams : {}) || {};
+    const defaultWeightRaw = (weights as any).default;
     const rules = Array.isArray(raw.rules) ? raw.rules : [];
 
     const normUsers: Record<string, number> = {};
@@ -20,6 +21,8 @@ export class ConfigLoader {
       const n = Number(v as any);
       if (Number.isFinite(n)) normTeams[String(k)] = n;
     }
+
+    const defaultWeight = Number(defaultWeightRaw);
 
     const normRules: WeightedApprovalsConfig["rules"] = [];
     for (const r of rules) {
@@ -40,7 +43,11 @@ export class ConfigLoader {
     }
 
     return {
-      weights: { users: normUsers, teams: normTeams },
+      weights: {
+        users: normUsers,
+        teams: normTeams,
+        default: Number.isFinite(defaultWeight) ? defaultWeight : 1,
+      },
       rules: normRules,
       labels: raw.labels && typeof raw.labels === "object" ? raw.labels : undefined,
     };

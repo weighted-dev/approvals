@@ -59,6 +59,10 @@ In your default branch protection rules, require the status check:
 
 ```yaml
 weights:
+  # Optional: default weight for ANY approving reviewer not explicitly listed below.
+  # If set to 1, then “two +1 approvals can satisfy required_total=2”.
+  # Default is 1 (unlisted approvers contribute +1).
+  default: 1
   users:
     alice: 2
     bob: 1

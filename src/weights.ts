@@ -11,6 +11,8 @@ export class WeightResolver {
   constructor(private readonly gh: GitHubClient) {}
 
   async compute(config: WeightedApprovalsConfig, approverLogins: string[]): Promise<{ perUser: Map<string, PerUserWeight>; teamErrors: string[] }> {
+    const defaultWeight = Number.isFinite(Number(config.weights.default)) ? Number(config.weights.default) : 0;
+
     const userWeights: Record<string, number> = {};
     for (const [u, w] of Object.entries(config.weights.users || {})) {
       const n = Number(w);
@@ -27,7 +29,8 @@ export class WeightResolver {
     const teamErrors: string[] = [];
 
     for (const login of approverLogins) {
-      const userWeight = userWeights[login] || 0;
+      const hasExplicitUserWeight = Object.prototype.hasOwnProperty.call(userWeights, login);
+      const userWeight = hasExplicitUserWeight ? userWeights[login] : defaultWeight;
       let weight = userWeight;
       const matchedTeams: string[] = [];
 

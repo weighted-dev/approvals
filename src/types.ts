@@ -13,6 +13,7 @@ export interface WeightedApprovalsConfig {
   weights: {
     users: Record<string, number>;
     teams: Record<string, number>; // "org/team_slug" -> weight
+    default?: number;
   };
   rules: Array<{
     paths: string[];
@@ -33,5 +34,3 @@ export interface MaOverride {
   commentAssociation: string;
   ignoredTeams: string[];
 }
-
-

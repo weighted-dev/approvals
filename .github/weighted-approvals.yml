@@ -1,4 +1,5 @@
 weights:
+  default: 1
   users:
     sean-brydon: 2
     pasqualevitiello: 1
