@@ -1,4 +1,9 @@
 weights:
+  # Optional: default weight for ANY approving reviewer not explicitly listed below.
+  # Set to 1 to allow “two approvals” to satisfy required_total=2 even if users are not enumerated.
+  default: 1
+  # Optional: how to combine user weights vs team weights (default: max)
+  precedence: max
   users:
     # “+2 rights”: a single approval from Alice can satisfy required_total=2
     alice: 2

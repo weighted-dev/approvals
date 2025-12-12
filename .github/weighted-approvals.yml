@@ -1,7 +1,9 @@
 weights:
+  default: 1
   users:
     sean-brydon: 2
     pasqualevitiello: 1
+    eunjae-lee: 1
 
 rules:
   # For testing, require +2 total for any change in the repo.

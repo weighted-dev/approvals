@@ -16,6 +16,21 @@ It creates/updates a Check Run named `weighted-approvals` (configurable). Make t
 
 ## Installation
 
+### Quick start (self-test in this repo)
+
+If you’re developing this action, the fastest end-to-end test is using `uses: ./` (run the action from the same repo).
+
+This repo already includes:
+- `.github/weighted-approvals.yml` (test config)
+- `.github/workflows/wa-test.yml` (workflow using `uses: ./`)
+
+Steps:
+1) Edit `.github/weighted-approvals.yml` and set real GitHub usernames/teams.
+2) Push a branch and open a PR.
+3) Approve / add labels / add `ma:` comment directives and watch the `weighted-approvals` check update.
+
+### Using as a reusable action in another repo
+
 1) Add config: `.github/weighted-approvals.yml`
 
 Example:
@@ -44,6 +59,15 @@ In your default branch protection rules, require the status check:
 
 ```yaml
 weights:
+  # Optional: default weight for ANY approving reviewer not explicitly listed below.
+  # If set to 1, then “two +1 approvals can satisfy required_total=2”.
+  # Default is 1 (unlisted approvers contribute +1).
+  default: 1
+  # Optional: how to combine user weights vs team weights (default: max)
+  # - max: use the higher of user/default and any matching team weight
+  # - user: if user is explicitly listed, use that value and ignore teams
+  # - team: if user matches any team, use the team value and ignore explicit user weight
+  precedence: max
   users:
     alice: 2
     bob: 1
@@ -116,7 +140,10 @@ Security:
 
 ## Security model
 
-Recommended trigger: `pull_request_target`.
+Recommended trigger depends on your goal:
+
+- `pull_request`: works when the workflow exists only on a feature branch (useful for development/testing). For PRs from forks, permissions may be restricted.
+- `pull_request_target`: more secure for enforcing rules on incoming PRs, but **the workflow must exist on the base branch** (e.g. `main`) to run.
 
 This action loads the config from the **base branch ref** (not from the PR’s head), so a PR can’t lower requirements by editing the config file.
 
@@ -133,6 +160,8 @@ If you use the `ma:` PR comment directive feature, also trigger the workflow on 
 - `config_path` (default `.github/weighted-approvals.yml`)
 - `check_name` (default `weighted-approvals`)
 - `label_prefix` (default `wa:+`)
+- `comment_directive_prefix` (default `ma:`): enables directives like `ma:@org/team +2`
+- `comment_trusted_author_associations` (default `OWNER,MEMBER,COLLABORATOR`): who is allowed to set directives
 - `fail_on_error` (default `true`)
 - `debug` (default `false`)
 
@@ -144,7 +173,7 @@ Source lives in `src/` and is written in TypeScript. The published GitHub Action
 
 ```bash
 npm install
-npm run build
+npm run build:all
 ```
 
 - Commit `dist/` changes when releasing a new version/tag.

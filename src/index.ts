@@ -8,7 +8,7 @@ import { GitHubClient } from "./github";
 import type { MaOverride } from "./types";
 import { getInput, toBool, readJsonFile, fail, notice, debugLog } from "./util";
 import { WeightResolver } from "./weights";
-import { YamlParser } from "./yaml";
+import { parse as parseYaml } from "yaml";
 
 class ActionApp {
   async run(): Promise<void> {
@@ -46,7 +46,6 @@ class ActionApp {
     const event = readJsonFile<any>(eventPath);
 
     const gh = new GitHubClient(token, owner, repo, debug);
-    const yaml = new YamlParser();
     const configLoader = new ConfigLoader();
     const engine = new WeightedApprovalsEngine(new GlobMatcher());
     const directives = new DirectiveService();
@@ -79,7 +78,7 @@ class ActionApp {
     // Load config from base ref (protect against PR modifications)
     const refForConfig = baseSha || baseRef || "main";
     const configText = await gh.fetchRepoFile(configPath, refForConfig);
-    const configObj = configLoader.normalize(yaml.parse(configText));
+    const configObj = configLoader.normalize(parseYaml(configText));
 
     const changedFiles = await gh.listPullFiles(pullNumber);
     const {

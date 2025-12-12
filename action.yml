@@ -17,11 +17,11 @@ inputs:
   label_prefix:
     description: Optional label prefix to override required total, e.g. 'wa:+' matches labels like 'wa:+3'.
     required: false
-    default: wa:+
+    default: "wa:+"
   comment_directive_prefix:
     description: Optional PR comment directive prefix, e.g. 'ma:' enables directives like 'ma:@org/team +2'.
     required: false
-    default: ma:
+    default: "ma:"
   comment_trusted_author_associations:
     description: Comma-separated author_association values allowed to set comment directives (e.g. OWNER,MEMBER,COLLABORATOR).
     required: false
