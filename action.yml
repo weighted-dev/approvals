@@ -1,6 +1,9 @@
 name: weighted-approvals
 description: Gerrit/Jenkins-style weighted approvals enforced via a required GitHub Check Run.
 author: weighted-approvals
+branding:
+  icon: lock
+  color: black
 
 inputs:
   token:
