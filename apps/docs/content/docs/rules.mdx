@@ -1,0 +1,133 @@
+---
+title: Rules
+description: Define path-based approval requirements.
+---
+
+# Rules
+
+Rules let you set different approval thresholds based on which files are changed. Critical infrastructure might require `+3`, while documentation only needs `+1`.
+
+## Basic Rules
+
+```yaml title=".github/weighted-approvals.yml"
+rules:
+  - paths: ["**"]
+    required_total: 1
+
+  - paths: ["src/**"]
+    required_total: 2
+
+  - paths: ["infra/**", ".github/**"]
+    required_total: 3
+```
+
+## Rule Structure
+
+Each rule has:
+
+| Field            | Required | Description                                                 |
+| ---------------- | -------- | ----------------------------------------------------------- |
+| `paths`          | Yes      | Array of glob patterns to match changed files               |
+| `required_total` | Yes      | Minimum weight total required for matching files            |
+| `approvers`      | No       | Restrict who can approve (see [Approvers](/docs/approvers)) |
+
+## Path Patterns
+
+Patterns follow CODEOWNERS-style globs:
+
+| Pattern       | Matches                            |
+| ------------- | ---------------------------------- |
+| `**`          | All files                          |
+| `src/**`      | All files under `src/` directory   |
+| `*.ts`        | TypeScript files in root           |
+| `**/*.ts`     | TypeScript files anywhere          |
+| `docs/*.md`   | Markdown files directly in `docs/` |
+| `apps/web/**` | All files under `apps/web/`        |
+
+## Rule Matching
+
+When a PR is opened, the action:
+
+1. Gets the list of changed files
+2. Checks each rule's `paths` against the changed files
+3. A rule **matches** if any changed file matches any of its patterns
+4. The **required total** is the **maximum** from all matching rules
+
+### Example
+
+Changed files:
+
+- `src/components/Button.tsx`
+- `infra/terraform/main.tf`
+
+Rules:
+
+```yaml
+rules:
+  - paths: ["src/**"]
+    required_total: 2
+  - paths: ["infra/**"]
+    required_total: 3
+```
+
+Both rules match, so `required_total = max(2, 3) = 3`.
+
+## Multiple Paths per Rule
+
+A rule can have multiple path patterns (OR logic):
+
+```yaml
+rules:
+  - paths:
+      - "infra/**"
+      - ".github/**"
+      - "scripts/**"
+    required_total: 3
+```
+
+This rule matches if **any** of these directories have changes.
+
+## Catch-All Rule
+
+A common pattern is to have a default rule:
+
+```yaml
+rules:
+  # Default: any PR needs at least +1
+  - paths: ["**"]
+    required_total: 1
+
+  # But src/ needs +2
+  - paths: ["src/**"]
+    required_total: 2
+```
+
+Since the max wins, a PR touching `src/` will require `+2`.
+
+## Empty Rules
+
+If no rules match a PR's changed files, `required_total = 0` and the check passes automatically.
+
+To require approval on all PRs, add:
+
+```yaml
+rules:
+  - paths: ["**"]
+    required_total: 1
+```
+
+## With Approvers
+
+Rules can also specify who is allowed to approve:
+
+```yaml
+rules:
+  - paths: ["infra/**"]
+    required_total: 2
+    approvers:
+      any:
+        my-org/infra-team: 1
+        my-org/platform-team: 1
+```
+
+See [Approvers](/docs/approvers) for the full syntax.

@@ -1,0 +1,122 @@
+---
+title: Weights
+description: Configure approval weights for users and teams.
+---
+
+# Weights
+
+Weights determine how much each reviewer's approval contributes to the total. A senior developer might have weight `+2`, while a regular contributor has `+1`.
+
+## Basic Configuration
+
+```yaml title=".github/weighted-approvals.yml"
+weights:
+  users:
+    alice: 2 # Senior developer
+    bob: 1 # Regular developer
+    carol: 1
+  teams:
+    my-org/platform-reviewers: 2
+    my-org/app-reviewers: 1
+```
+
+## Options
+
+### `default`
+
+The default weight for any approving reviewer not explicitly listed.
+
+```yaml
+weights:
+  default: 1 # Unlisted approvers contribute +1
+  users:
+    alice: 2
+```
+
+If not set, defaults to `1`.
+
+### `precedence`
+
+How to combine user weights vs team weights when a user matches both:
+
+| Value  | Behavior                                                                 |
+| ------ | ------------------------------------------------------------------------ |
+| `max`  | Use the higher of (user/default) and matching team weights **(default)** |
+| `user` | If user is explicitly listed, use that value and ignore teams            |
+| `team` | If user matches any team, use the max team weight; ignore user setting   |
+
+```yaml
+weights:
+  precedence: max
+  users:
+    alice: 2
+  teams:
+    my-org/platform: 3
+```
+
+With `precedence: max`, if Alice is in `my-org/platform`:
+
+- Her effective weight is `max(2, 3) = 3`
+
+With `precedence: user`:
+
+- Her effective weight is `2` (explicit user setting wins)
+
+With `precedence: team`:
+
+- Her effective weight is `3` (team membership wins)
+
+## Team Weights
+
+Team keys use the format `org/team_slug`:
+
+```yaml
+weights:
+  teams:
+    my-org/platform-reviewers: 2
+    my-org/frontend-team: 1
+```
+
+<Callout type="info">
+  Team membership checks require a token with **org read** permissions. If using
+  `GITHUB_TOKEN`, it must have access to read organization data. For private
+  orgs, you may need a PAT with `read:org` scope.
+</Callout>
+
+## Weight Calculation Example
+
+Given this config:
+
+```yaml
+weights:
+  default: 1
+  precedence: max
+  users:
+    alice: 2
+    bob: 1
+  teams:
+    my-org/seniors: 3
+```
+
+And these team memberships:
+
+- Alice is in `my-org/seniors`
+- Bob is in `my-org/seniors`
+- Carol is not in any listed team
+
+Results:
+| Reviewer | Calculation | Effective Weight |
+|----------|-------------|------------------|
+| Alice | `max(2, 3) = 3` | +3 |
+| Bob | `max(1, 3) = 3` | +3 |
+| Carol | `default = 1` | +1 |
+
+## Latest Review Wins
+
+Only the **latest** review from each user is counted. If a reviewer:
+
+1. Approves (+2)
+2. Then requests changes
+3. Their approval is **not** counted
+
+They must approve again for their weight to count.

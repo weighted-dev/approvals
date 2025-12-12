@@ -1,0 +1,171 @@
+---
+title: Approvers
+description: Control who can approve with AND/OR team logic.
+---
+
+# Approvers
+
+The `approvers` block lets you restrict which teams or users can approve specific paths. This is powerful for enforcing domain expertise requirements.
+
+## Basic Usage
+
+### `any` - OR Logic
+
+Approvals from **any** of the listed teams count:
+
+```yaml
+rules:
+  - paths: ["infra/**"]
+    required_total: 2
+    approvers:
+      any:
+        my-org/infra-team: 1
+        my-org/platform-team: 1
+```
+
+Either team can provide the approvals. Two approvals from `infra-team` works, or one from each, or two from `platform-team`.
+
+### `all` - AND Logic
+
+You need approvals from **each** listed team:
+
+```yaml
+rules:
+  - paths: ["apps/web/**"]
+    required_total: 2
+    approvers:
+      all:
+        my-org/frontend-team: 1
+        my-org/foundation-team: 1
+```
+
+You need at least 1 approval from `frontend-team` **AND** at least 1 from `foundation-team`.
+
+## Nested Conditions
+
+You can nest `any` and `all` for complex boolean logic.
+
+### (A AND B) OR C
+
+```yaml
+approvers:
+  any:
+    - all:
+        my-org/frontend-team: 1
+        my-org/foundation-team: 1
+    - all:
+        my-org/admin-team: 2
+```
+
+This passes if:
+
+- (1 from frontend AND 1 from foundation) OR
+- (2 from admin)
+
+### Explicit Teams and Users
+
+Mix teams and specific users:
+
+```yaml
+approvers:
+  all:
+    - teams:
+        my-org/platform-team: 1
+      users:
+        alice: 1
+```
+
+Requires 1 from `platform-team` AND an approval from `alice`.
+
+## No Restriction (Default)
+
+When `approvers` is omitted, anyone can approve:
+
+```yaml
+rules:
+  - paths: ["**"]
+    required_total: 1
+    # No approvers block - anyone can approve
+```
+
+## How Matching Works
+
+When multiple rules match with different `approvers` conditions:
+
+1. **Required total**: Maximum from all matching rules
+2. **Allowed approvers**: From the max-required rule(s)
+3. **Per-team requirements**: Merged by taking the max count per team
+
+### Example
+
+```yaml
+rules:
+  - paths: ["src/**"]
+    required_total: 2
+    approvers:
+      any:
+        my-org/team-a: 1
+
+  - paths: ["src/critical/**"]
+    required_total: 3
+    approvers:
+      all:
+        my-org/team-a: 1
+        my-org/team-b: 2
+```
+
+For a PR touching `src/critical/file.ts`:
+
+- Both rules match
+- Required total = `max(2, 3) = 3`
+- Approvers from the `+3` rule apply: need 1 from `team-a` AND 2 from `team-b`
+
+## Team Format
+
+Team identifiers use the format `org/team_slug`:
+
+```yaml
+approvers:
+  any:
+    calcom/platform: 1 # Team slug
+    calcom/foundation: 1
+```
+
+<Callout type="warn">
+  Team membership checks require appropriate token permissions. If the check
+  can't verify team membership, team-based approver restrictions may not work
+  correctly. The check output will indicate when this happens.
+</Callout>
+
+## Replacing CODEOWNERS
+
+### Single Owner Team
+
+**CODEOWNERS**: `apps/api/** @my-org/api-team`
+
+**weighted-approvals**:
+
+```yaml
+rules:
+  - paths: ["apps/api/**"]
+    required_total: 1
+    approvers:
+      any:
+        my-org/api-team: 1
+```
+
+### Multiple Owner Teams (AND)
+
+**CODEOWNERS**: `apps/web/** @my-org/frontend @my-org/foundation`
+
+**weighted-approvals**:
+
+```yaml
+rules:
+  - paths: ["apps/web/**"]
+    required_total: 2
+    approvers:
+      all:
+        my-org/frontend: 1
+        my-org/foundation: 1
+```

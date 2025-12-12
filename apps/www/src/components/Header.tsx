@@ -1,55 +1,206 @@
-import { Github, ExternalLink } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { useState } from "react";
+
+// GitHub's Octicon mark
+function GitHubMark({
+  className,
+  style,
+}: {
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <svg
+      className={className}
+      style={style}
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+    </svg>
+  );
+}
 
 export default function Header() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
-      <div className="container mx-auto px-6">
-        <div className="flex items-center justify-between h-14">
-          <a href="/" className="flex items-center gap-2.5 group">
-            <div className="w-7 h-7 rounded-lg bg-foreground flex items-center justify-center">
-              <svg
-                className="w-4 h-4 text-background"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+    <header
+      className="fixed top-0 left-0 right-0 z-50"
+      style={{
+        backgroundColor: "var(--color-canvas-default)",
+        borderBottom: "1px solid var(--color-border-default)",
+      }}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo */}
+          <a href="/" className="flex items-center gap-3 group">
+            <div
+              className="p-1.5 rounded-md transition-colors"
+              style={{ backgroundColor: "transparent" }}
+            >
+              <GitHubMark
+                className="w-8 h-8 transition-opacity group-hover:opacity-80"
+                style={{ color: "var(--color-fg-default)" }}
+              />
             </div>
-            <span className="font-semibold text-foreground text-sm">
-              weighted-approvals
-            </span>
+            <div className="flex items-center">
+              <span
+                className="font-semibold text-base"
+                style={{ color: "var(--color-fg-default)" }}
+              >
+                weighted-approvals
+              </span>
+              <span
+                className="ml-2 text-xs px-1.5 py-0.5 rounded-full font-medium"
+                style={{
+                  backgroundColor: "var(--color-accent-subtle)",
+                  color: "var(--color-accent-fg)",
+                }}
+              >
+                Action
+              </span>
+            </div>
           </a>
 
-          <nav className="flex items-center gap-1">
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-1">
             <a
               href="#features"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-md hover:bg-muted hidden sm:block"
+              className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              style={{ color: "var(--color-fg-muted)" }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--color-fg-default)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--color-fg-muted)")
+              }
             >
               Features
             </a>
             <a
               href="#how-it-works"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2 rounded-md hover:bg-muted hidden sm:block"
+              className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              style={{ color: "var(--color-fg-muted)" }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--color-fg-default)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--color-fg-muted)")
+              }
             >
               How it works
             </a>
             <a
-              href="https://github.com/your-org/weighted-approvals"
+              href="#config"
+              className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              style={{ color: "var(--color-fg-muted)" }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.color = "var(--color-fg-default)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.color = "var(--color-fg-muted)")
+              }
+            >
+              Config
+            </a>
+
+            <div
+              className="w-px h-5 mx-2"
+              style={{ backgroundColor: "var(--color-border-default)" }}
+            />
+
+            <a
+              href="https://github.com/tanstack/weighted-approvals"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-border hover:bg-muted text-sm font-medium transition-all ml-2"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all"
+              style={{
+                backgroundColor: "var(--color-canvas-subtle)",
+                color: "var(--color-fg-default)",
+                border: "1px solid var(--color-border-default)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "var(--color-border-default)";
+                e.currentTarget.style.borderColor = "var(--color-fg-subtle)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor =
+                  "var(--color-canvas-subtle)";
+                e.currentTarget.style.borderColor =
+                  "var(--color-border-default)";
+              }}
             >
-              <Github className="w-4 h-4" />
-              <span className="hidden sm:inline">GitHub</span>
+              <GitHubMark className="w-4 h-4" />
+              <span>View on GitHub</span>
             </a>
           </nav>
+
+          {/* Mobile menu button */}
+          <button
+            className="md:hidden p-2 rounded-md transition-colors"
+            style={{ color: "var(--color-fg-muted)" }}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
+          </button>
         </div>
+
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <div
+            className="md:hidden py-3 border-t"
+            style={{ borderColor: "var(--color-border-default)" }}
+          >
+            <nav className="flex flex-col gap-1">
+              <a
+                href="#features"
+                className="px-3 py-2 rounded-md text-sm font-medium"
+                style={{ color: "var(--color-fg-muted)" }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Features
+              </a>
+              <a
+                href="#how-it-works"
+                className="px-3 py-2 rounded-md text-sm font-medium"
+                style={{ color: "var(--color-fg-muted)" }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                How it works
+              </a>
+              <a
+                href="#config"
+                className="px-3 py-2 rounded-md text-sm font-medium"
+                style={{ color: "var(--color-fg-muted)" }}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Config
+              </a>
+              <a
+                href="https://github.com/tanstack/weighted-approvals"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 text-sm font-medium mt-2 rounded-md"
+                style={{
+                  backgroundColor: "var(--color-canvas-subtle)",
+                  color: "var(--color-fg-default)",
+                  border: "1px solid var(--color-border-default)",
+                }}
+              >
+                <GitHubMark className="w-4 h-4" />
+                <span>View on GitHub</span>
+              </a>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

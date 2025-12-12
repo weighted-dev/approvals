@@ -1,0 +1,210 @@
+---
+title: Examples
+description: Real-world configuration examples for common scenarios.
+---
+
+# Examples
+
+Here are some real-world configuration patterns for common use cases.
+
+## Simple Setup
+
+A basic configuration for a small team:
+
+```yaml title=".github/weighted-approvals.yml"
+weights:
+  users:
+    senior-dev-1: 2
+    senior-dev-2: 2
+  # Everyone else gets default weight of 1
+
+rules:
+  - paths: ["**"]
+    required_total: 2
+```
+
+**Result**: Either one senior (weight 2) or two regular devs can approve any PR.
+
+## Tiered Requirements
+
+Different requirements for different parts of the codebase:
+
+```yaml title=".github/weighted-approvals.yml"
+weights:
+  users:
+    alice: 2
+    bob: 2
+  teams:
+    my-org/core-team: 2
+
+rules:
+  # Documentation: anyone can approve
+  - paths: ["docs/**", "*.md"]
+    required_total: 1
+
+  # Source code: need +2
+  - paths: ["src/**", "lib/**"]
+    required_total: 2
+
+  # Infrastructure: need +3
+  - paths: ["infra/**", "terraform/**", ".github/**"]
+    required_total: 3
+
+  # Database migrations: need +4
+  - paths: ["migrations/**"]
+    required_total: 4
+```
+
+## CODEOWNERS Replacement
+
+Migrating from GitHub CODEOWNERS to weighted-approvals:
+
+```yaml title=".github/weighted-approvals.yml"
+weights:
+  default: 1
+  teams:
+    my-org/platform: 2
+    my-org/frontend: 2
+    my-org/backend: 2
+
+rules:
+  # Platform owns infra
+  - paths: ["infra/**", ".github/**", "scripts/**"]
+    required_total: 1
+    approvers:
+      any:
+        my-org/platform: 1
+
+  # Frontend owns web app
+  - paths: ["apps/web/**", "packages/ui/**"]
+    required_total: 1
+    approvers:
+      any:
+        my-org/frontend: 1
+
+  # Backend owns API
+  - paths: ["apps/api/**", "packages/core/**"]
+    required_total: 1
+    approvers:
+      any:
+        my-org/backend: 1
+
+  # Shared code needs cross-team review
+  - paths: ["packages/shared/**"]
+    required_total: 2
+    approvers:
+      all:
+        my-org/frontend: 1
+        my-org/backend: 1
+```
+
+## Monorepo with Multiple Teams
+
+A monorepo where different teams own different apps:
+
+```yaml title=".github/weighted-approvals.yml"
+weights:
+  teams:
+    acme/consumer-team: 2
+    acme/platform-team: 2
+    acme/foundation-team: 2
+    acme/admin-team: 3
+
+rules:
+  # Consumer app: consumer team OR foundation
+  - paths: ["apps/consumer/**"]
+    required_total: 2
+    approvers:
+      any:
+        acme/consumer-team: 1
+        acme/foundation-team: 1
+
+  # Platform services: platform team only
+  - paths: ["services/**"]
+    required_total: 2
+    approvers:
+      any:
+        acme/platform-team: 1
+
+  # Shared packages: need both consumer and foundation
+  - paths: ["packages/shared/**"]
+    required_total: 2
+    approvers:
+      all:
+        acme/consumer-team: 1
+        acme/foundation-team: 1
+
+  # Critical config: admin with high threshold
+  - paths: ["config/production/**"]
+    required_total: 3
+    approvers:
+      any:
+        acme/admin-team: 1
+```
+
+## Open Source Project
+
+For an open source project with maintainers and contributors:
+
+```yaml title=".github/weighted-approvals.yml"
+weights:
+  default: 0 # Contributors can't approve by default
+  users:
+    maintainer-1: 2
+    maintainer-2: 2
+    maintainer-3: 2
+    trusted-contributor-1: 1
+    trusted-contributor-2: 1
+
+rules:
+  # Docs: one maintainer or two trusted contributors
+  - paths: ["docs/**", "examples/**"]
+    required_total: 2
+
+  # Source: need a maintainer
+  - paths: ["src/**"]
+    required_total: 2
+
+  # CI/Release: need two maintainers
+  - paths: [".github/**", "scripts/release.sh"]
+    required_total: 4
+```
+
+## Workflow File
+
+Here's a complete workflow file:
+
+```yaml title=".github/workflows/weighted-approvals.yml"
+name: Weighted Approvals
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  pull_request_review:
+    types: [submitted, dismissed]
+  issue_comment:
+    types: [created, edited, deleted]
+
+permissions:
+  checks: write
+  pull-requests: read
+  contents: read
+
+jobs:
+  weighted-approvals:
+    runs-on: ubuntu-latest
+    # Only run on PR-related events
+    if: github.event.pull_request || github.event.issue.pull_request
+    steps:
+      - name: Run weighted-approvals check
+        uses: your-org/weighted-approvals@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Optional: use a PAT for org/team access
+          # token: ${{ secrets.ORG_READ_PAT }}
+```
+
+<Callout type="info">
+  For private organizations, you may need a Personal Access Token (PAT) with
+  `read:org` scope to check team memberships.
+</Callout>

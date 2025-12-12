@@ -1,0 +1,111 @@
+---
+title: Configuration
+description: Complete reference for the weighted-approvals configuration file.
+---
+
+# Configuration
+
+The configuration lives in `.github/weighted-approvals.yml` in your repository. This page covers all available options.
+
+## File Structure
+
+```yaml title=".github/weighted-approvals.yml"
+# Reviewer weights
+weights:
+  default: 1
+  precedence: max
+  users:
+    alice: 2
+    bob: 1
+  teams:
+    my-org/platform: 2
+
+# Path-based rules
+rules:
+  - paths: ["src/**"]
+    required_total: 2
+  - paths: ["infra/**"]
+    required_total: 3
+    approvers:
+      any:
+        my-org/infra: 1
+```
+
+## Top-Level Keys
+
+### `weights`
+
+Defines how much each reviewer's approval counts toward the total. See [Weights](/docs/weights) for details.
+
+### `rules`
+
+An array of rules that match changed files and set requirements. See [Rules](/docs/rules) for details.
+
+## Action Inputs
+
+When calling the action in your workflow, you can customize behavior:
+
+```yaml
+- uses: your-org/weighted-approvals@v1
+  with:
+    # Required: GitHub token
+    token: ${{ secrets.GITHUB_TOKEN }}
+
+    # Path to config file (default: .github/weighted-approvals.yml)
+    config_path: .github/weighted-approvals.yml
+
+    # Name of the check run (default: weighted-approvals)
+    check_name: weighted-approvals
+
+    # Label prefix for overrides (default: wa:+)
+    label_prefix: "wa:+"
+
+    # Comment directive prefix (default: ma:)
+    comment_directive_prefix: "ma:"
+
+    # Who can use comment directives (default: OWNER,MEMBER,COLLABORATOR)
+    comment_trusted_author_associations: OWNER,MEMBER,COLLABORATOR
+
+    # Fail check on errors vs neutral (default: true)
+    fail_on_error: "true"
+
+    # Enable debug logging (default: false)
+    debug: "false"
+```
+
+## Label Overrides
+
+You can override the required total using PR labels. With the default `label_prefix: "wa:+"`:
+
+- Label `wa:+3` sets minimum required total to 3
+- Label `wa:+5` sets minimum required total to 5
+
+The actual required total becomes `max(rules_total, label_total)`.
+
+## Comment Directives
+
+Trusted users can add special comments to restrict who can provide high-weight approvals:
+
+```
+ma:@my-org/platform +2
+```
+
+This means only members of `my-org/platform` can contribute weight ≥2 on this PR. Everyone else is capped to +1.
+
+Only users with trusted `author_association` values can set directives (default: OWNER, MEMBER, COLLABORATOR).
+
+## YAML Limitations
+
+The action uses a lightweight YAML parser. Stick to simple structures:
+
+✅ **Supported**:
+
+- Basic mappings and arrays
+- String, number, and boolean scalars
+- Nested structures
+
+❌ **Not supported**:
+
+- YAML anchors and aliases (`&`, `*`)
+- Multi-line block scalars (`|`, `>`)
+- Complex flow styles

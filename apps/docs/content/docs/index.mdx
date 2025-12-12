@@ -1,0 +1,92 @@
+---
+title: Getting Started
+description: Set up weighted approvals for your GitHub repository in minutes.
+---
+
+# Getting Started
+
+**Weighted Approvals** brings Gerrit/Jenkins-style weighted code review to GitHub Pull Requests. Instead of simple "2 approvals required," you can configure reviewer weights and path-based rules for fine-grained control.
+
+## Quick Example
+
+- **Alice** has weight `+2` (senior reviewer)
+- **Bob** has weight `+1` (regular reviewer)
+- Your `infra/` directory requires `+3` total
+
+**Result**: Either Alice + Bob approve (2+1=3), or Alice approves twice... wait, that's not possible. So you need Alice + Bob, or three +1 reviewers.
+
+## Installation
+
+### 1. Create the config file
+
+Add `.github/weighted-approvals.yml` to your repository:
+
+```yaml title=".github/weighted-approvals.yml"
+weights:
+  users:
+    alice: 2
+    bob: 1
+  teams:
+    my-org/platform-reviewers: 2
+
+rules:
+  - paths: ["**"]
+    required_total: 1
+
+  - paths: ["src/**"]
+    required_total: 2
+
+  - paths: ["infra/**"]
+    required_total: 3
+```
+
+### 2. Create the workflow
+
+Add `.github/workflows/weighted-approvals.yml`:
+
+```yaml title=".github/workflows/weighted-approvals.yml"
+name: Weighted Approvals
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+  pull_request_review:
+    types: [submitted, dismissed]
+  issue_comment:
+    types: [created, edited, deleted]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: read
+      contents: read
+    steps:
+      - uses: your-org/weighted-approvals@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+```
+
+### 3. Enable branch protection
+
+In your repository settings, require the `weighted-approvals` status check before merging.
+
+## How It Works
+
+1. **On PR events** (open, review, label change), the action runs
+2. **Rules are matched** against changed files using glob patterns
+3. **Required total** is the maximum from all matching rules
+4. **Current total** is the sum of weights from approving reviewers
+5. **Check passes** when `current_total >= required_total`
+
+## Security Model
+
+The config is always read from the **base branch** (e.g., `main`), so a PR cannot lower its own requirements by modifying the config file.
+
+For PRs from forks, consider using `pull_request_target` trigger for enhanced security.
+
+## Next Steps
+
+- [Configure weights](/docs/weights) for users and teams
+- [Define rules](/docs/rules) for path-based requirements
+- [Set up approvers](/docs/approvers) for team-based restrictions
