@@ -1,4 +1,5 @@
-import { Menu, X } from "lucide-react";
+import { Link, useLocation } from "@tanstack/react-router";
+import { Menu, X, BookOpen } from "lucide-react";
 import { useState } from "react";
 
 // GitHub's Octicon mark
@@ -24,6 +25,8 @@ function GitHubMark({
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
+  const isHome = location.pathname === "/";
 
   return (
     <header
@@ -36,7 +39,7 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-3 group">
             <div
               className="p-1.5 rounded-md transition-colors"
               style={{ backgroundColor: "transparent" }}
@@ -63,49 +66,67 @@ export default function Header() {
                 Action
               </span>
             </div>
-          </a>
+          </Link>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
-            <a
-              href="#features"
-              className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              style={{ color: "var(--color-fg-muted)" }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--color-fg-default)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "var(--color-fg-muted)")
-              }
+            {isHome && (
+              <>
+                <a
+                  href="#features"
+                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  style={{ color: "var(--color-fg-muted)" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "var(--color-fg-default)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = "var(--color-fg-muted)")
+                  }
+                >
+                  Features
+                </a>
+                <a
+                  href="#how-it-works"
+                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  style={{ color: "var(--color-fg-muted)" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "var(--color-fg-default)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = "var(--color-fg-muted)")
+                  }
+                >
+                  How it works
+                </a>
+                <a
+                  href="#config"
+                  className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                  style={{ color: "var(--color-fg-muted)" }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.color = "var(--color-fg-default)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.color = "var(--color-fg-muted)")
+                  }
+                >
+                  Config
+                </a>
+              </>
+            )}
+
+            <Link
+              to="/docs"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+              style={{
+                color:
+                  location.pathname === "/docs"
+                    ? "var(--color-fg-default)"
+                    : "var(--color-fg-muted)",
+              }}
             >
-              Features
-            </a>
-            <a
-              href="#how-it-works"
-              className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              style={{ color: "var(--color-fg-muted)" }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--color-fg-default)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "var(--color-fg-muted)")
-              }
-            >
-              How it works
-            </a>
-            <a
-              href="#config"
-              className="px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              style={{ color: "var(--color-fg-muted)" }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--color-fg-default)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "var(--color-fg-muted)")
-              }
-            >
-              Config
-            </a>
+              <BookOpen className="w-4 h-4" />
+              Docs
+            </Link>
 
             <div
               className="w-px h-5 mx-2"
@@ -113,7 +134,7 @@ export default function Header() {
             />
 
             <a
-              href="https://github.com/tanstack/weighted-approvals"
+              href="https://github.com/weighted/approvals"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all"
@@ -135,7 +156,7 @@ export default function Header() {
               }}
             >
               <GitHubMark className="w-4 h-4" />
-              <span>View on GitHub</span>
+              <span>GitHub</span>
             </a>
           </nav>
 
@@ -160,32 +181,45 @@ export default function Header() {
             style={{ borderColor: "var(--color-border-default)" }}
           >
             <nav className="flex flex-col gap-1">
-              <a
-                href="#features"
-                className="px-3 py-2 rounded-md text-sm font-medium"
+              {isHome && (
+                <>
+                  <a
+                    href="#features"
+                    className="px-3 py-2 rounded-md text-sm font-medium"
+                    style={{ color: "var(--color-fg-muted)" }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Features
+                  </a>
+                  <a
+                    href="#how-it-works"
+                    className="px-3 py-2 rounded-md text-sm font-medium"
+                    style={{ color: "var(--color-fg-muted)" }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    How it works
+                  </a>
+                  <a
+                    href="#config"
+                    className="px-3 py-2 rounded-md text-sm font-medium"
+                    style={{ color: "var(--color-fg-muted)" }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Config
+                  </a>
+                </>
+              )}
+              <Link
+                to="/docs"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium"
                 style={{ color: "var(--color-fg-muted)" }}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Features
-              </a>
+                <BookOpen className="w-4 h-4" />
+                Docs
+              </Link>
               <a
-                href="#how-it-works"
-                className="px-3 py-2 rounded-md text-sm font-medium"
-                style={{ color: "var(--color-fg-muted)" }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                How it works
-              </a>
-              <a
-                href="#config"
-                className="px-3 py-2 rounded-md text-sm font-medium"
-                style={{ color: "var(--color-fg-muted)" }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Config
-              </a>
-              <a
-                href="https://github.com/tanstack/weighted-approvals"
+                href="https://github.com/weighted/approvals"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium mt-2 rounded-md"

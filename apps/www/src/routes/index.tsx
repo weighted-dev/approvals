@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Users,
   FolderTree,
@@ -113,7 +113,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: tanstack/weighted-approvals@v1`;
+      - uses: weighted/approvals@v1`;
 
 function LandingPage() {
   return (
@@ -153,15 +153,15 @@ function LandingPage() {
 
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
-            <a
-              href="https://github.com/tanstack/weighted-approvals#installation"
+            <Link
+              to="/docs"
               className="btn-primary flex items-center gap-2"
               style={{ padding: "10px 20px", fontSize: "16px" }}
             >
               Get started
-            </a>
+            </Link>
             <a
-              href="https://github.com/tanstack/weighted-approvals"
+              href="https://github.com/weighted/approvals"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary flex items-center gap-2"
@@ -393,13 +393,13 @@ function LandingPage() {
           <p className="mb-8" style={{ color: "var(--color-fg-muted)" }}>
             Add weighted approvals to your repository in minutes.
           </p>
-          <a
-            href="https://github.com/tanstack/weighted-approvals#installation"
+          <Link
+            to="/docs"
             className="btn-primary inline-flex items-center gap-2"
             style={{ padding: "12px 24px", fontSize: "16px" }}
           >
             Read the docs
-          </a>
+          </Link>
         </div>
       </section>
 
