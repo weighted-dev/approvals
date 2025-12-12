@@ -27,9 +27,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           config_path: .github/weighted-approvals.yml
           check_name: weighted-approvals
-          label_prefix: wa:+
-          comment_directive_prefix: ma:
-          comment_trusted_author_associations: OWNER,MEMBER,COLLABORATOR
+          label_prefix: "wa:+"
+          comment_directive_prefix: "ma:"
+          comment_trusted_author_associations: "OWNER,MEMBER,COLLABORATOR"
           debug: "false"
-
-
