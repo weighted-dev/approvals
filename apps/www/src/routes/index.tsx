@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { WeightedApprovalDemo } from "../components/WeightedApprovalDemo";
+import { ShikiCode } from "../components/ShikiCode";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,
@@ -345,12 +346,7 @@ function LandingPage() {
                 </span>
                 <CopyButton text={configExample} />
               </div>
-              <pre
-                className="p-4 overflow-x-auto text-sm leading-relaxed"
-                style={{ color: "var(--color-fg-default)" }}
-              >
-                <code>{configExample}</code>
-              </pre>
+              <ShikiCode code={configExample} lang="yaml" />
             </div>
 
             {/* Workflow file */}
@@ -376,12 +372,7 @@ function LandingPage() {
                 </span>
                 <CopyButton text={workflowExample} />
               </div>
-              <pre
-                className="p-4 overflow-x-auto text-sm leading-relaxed"
-                style={{ color: "var(--color-fg-default)" }}
-              >
-                <code>{workflowExample}</code>
-              </pre>
+              <ShikiCode code={workflowExample} lang="yaml" />
             </div>
           </div>
         </div>
