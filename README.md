@@ -16,6 +16,21 @@ It creates/updates a Check Run named `weighted-approvals` (configurable). Make t
 
 ## Installation
 
+### Quick start (self-test in this repo)
+
+If you’re developing this action, the fastest end-to-end test is using `uses: ./` (run the action from the same repo).
+
+This repo already includes:
+- `.github/weighted-approvals.yml` (test config)
+- `.github/workflows/wa-test.yml` (workflow using `uses: ./`)
+
+Steps:
+1) Edit `.github/weighted-approvals.yml` and set real GitHub usernames/teams.
+2) Push a branch and open a PR.
+3) Approve / add labels / add `ma:` comment directives and watch the `weighted-approvals` check update.
+
+### Using as a reusable action in another repo
+
 1) Add config: `.github/weighted-approvals.yml`
 
 Example:
@@ -133,6 +148,8 @@ If you use the `ma:` PR comment directive feature, also trigger the workflow on 
 - `config_path` (default `.github/weighted-approvals.yml`)
 - `check_name` (default `weighted-approvals`)
 - `label_prefix` (default `wa:+`)
+- `comment_directive_prefix` (default `ma:`): enables directives like `ma:@org/team +2`
+- `comment_trusted_author_associations` (default `OWNER,MEMBER,COLLABORATOR`): who is allowed to set directives
 - `fail_on_error` (default `true`)
 - `debug` (default `false`)
 
