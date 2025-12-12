@@ -11,48 +11,44 @@ weights:
     calcom/platform: 1
 
 rules:
-  # Baseline: any PR needs 1 approval
+  # Baseline: any PR needs 1 approval (no restriction on who)
   - paths: ["**"]
     required_total: 1
 
-  # /**/package.json @calcom/Foundation
+  # /**/package.json - only @calcom/Foundation can approve
   - paths: ["**/package.json"]
     required_total: 1
-    allowed:
-      teams: ["calcom/foundation"]
+    approvers:
+      any:
+        calcom/foundation: 1
 
-  # /apps/api/**/* @calcom/API
+  # /apps/api/**/* - only @calcom/API can approve
   - paths: ["apps/api/**"]
     required_total: 1
-    allowed:
-      teams: ["calcom/api"]
+    approvers:
+      any:
+        calcom/api: 1
 
-  # /apps/ui-playground/**/* @calcom/Consumer @calcom/Foundation
+  # /apps/ui-playground/**/* - need approval from BOTH @calcom/Consumer AND @calcom/Foundation
   - paths: ["apps/ui-playground/**"]
     required_total: 2
-    allowed:
-      teams: ["calcom/consumer", "calcom/foundation"]
-    required_by:
-      teams:
+    approvers:
+      all:
         calcom/consumer: 1
         calcom/foundation: 1
 
-  # /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
+  # /apps/web/**/layout.tsx - need approval from BOTH @calcom/Consumer AND @calcom/Foundation
   - paths: ["apps/web/**/layout.tsx"]
     required_total: 2
-    allowed:
-      teams: ["calcom/consumer", "calcom/foundation"]
-    required_by:
-      teams:
+    approvers:
+      all:
         calcom/consumer: 1
         calcom/foundation: 1
 
-  # /packages/platform/**/* @calcom/Platform @calcom/Foundation
+  # /packages/platform/**/* - need approval from BOTH @calcom/Platform AND @calcom/Foundation
   - paths: ["packages/platform/**"]
     required_total: 2
-    allowed:
-      teams: ["calcom/platform", "calcom/foundation"]
-    required_by:
-      teams:
+    approvers:
+      all:
         calcom/platform: 1
         calcom/foundation: 1

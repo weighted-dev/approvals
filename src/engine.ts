@@ -1,11 +1,14 @@
-import type { MaOverride, WeightedApprovalsConfig } from "./types";
+import type {
+  ApproverCondition,
+  MaOverride,
+  WeightedApprovalsConfig,
+} from "./types";
 import { GlobMatcher } from "./glob";
 
 export interface ComputedRule {
   paths: string[];
   required_total: number;
-  allowed?: { users?: string[]; teams?: string[] };
-  required_by?: { teams?: Record<string, number> };
+  approvers?: ApproverCondition;
 }
 
 export interface ComputedResult {
@@ -71,18 +74,60 @@ export class WeightedApprovalsEngine {
     return { requiredTotal: max, matchedRules: matched, maxRules };
   }
 
+  /**
+   * Extract all team requirements from the approvers condition.
+   * For 'all' conditions, we need approvals from each team.
+   * For 'any' conditions, we don't enforce per-team requirements (just allowed).
+   */
   computeRequiredByTeams(maxRules: ComputedRule[]): Record<string, number> {
     const out: Record<string, number> = {};
     for (const r of maxRules || []) {
-      const teams = r.required_by?.teams;
-      if (!teams) continue;
-      for (const [team, nRaw] of Object.entries(teams)) {
-        const n = Number(nRaw);
-        if (!Number.isFinite(n) || n <= 0) continue;
-        out[team] = Math.max(out[team] || 0, n);
-      }
+      if (!r.approvers) continue;
+      this.extractRequiredTeams(r.approvers, out);
     }
     return out;
+  }
+
+  /**
+   * Recursively extract required teams from an approver condition.
+   * Only 'all' conditions create hard requirements.
+   */
+  private extractRequiredTeams(
+    condition: ApproverCondition,
+    out: Record<string, number>
+  ): void {
+    if ("all" in condition) {
+      const allVal = condition.all;
+      if (Array.isArray(allVal)) {
+        // Array of nested conditions - each must be satisfied
+        for (const nested of allVal) {
+          this.extractRequiredTeams(nested, out);
+        }
+      } else {
+        // Map form: { team: count, ... } - all teams required
+        for (const [team, count] of Object.entries(allVal)) {
+          const n = Number(count);
+          if (Number.isFinite(n) && n > 0) {
+            out[team] = Math.max(out[team] || 0, n);
+          }
+        }
+      }
+    } else if ("any" in condition) {
+      // 'any' doesn't create hard requirements, but nested 'all' within 'any' branches don't either
+      // since only one branch needs to be satisfied
+      // We don't extract from 'any' conditions
+    } else if ("teams" in condition || "users" in condition) {
+      // Explicit teams/users form - treat teams as requirements if present
+      const teams = condition.teams;
+      if (teams) {
+        for (const [team, count] of Object.entries(teams)) {
+          const n = Number(count);
+          if (Number.isFinite(n) && n > 0) {
+            out[team] = Math.max(out[team] || 0, n);
+          }
+        }
+      }
+    }
   }
 
   computeTeamSatisfaction(args: {
@@ -95,7 +140,8 @@ export class WeightedApprovalsEngine {
 
     for (const a of countedApprovers || []) {
       for (const team of Object.keys(requiredByTeams || {})) {
-        if (a.matchedTeams && a.matchedTeams.includes(team)) counts[team] = (counts[team] || 0) + 1;
+        if (a.matchedTeams && a.matchedTeams.includes(team))
+          counts[team] = (counts[team] || 0) + 1;
       }
     }
 
@@ -103,7 +149,8 @@ export class WeightedApprovalsEngine {
     for (const [team, needRaw] of Object.entries(requiredByTeams || {})) {
       const need = Number(needRaw);
       const have = counts[team] || 0;
-      if (Number.isFinite(need) && have < need) missing.push(`${team} (${have}/${need})`);
+      if (Number.isFinite(need) && have < need)
+        missing.push(`${team} (${have}/${need})`);
     }
 
     return { ok: missing.length === 0, counts, missing };
@@ -131,16 +178,64 @@ export class WeightedApprovalsEngine {
     }));
   }
 
-  private ruleAllowedSet(
-    rule: ComputedRule
-  ): { users: Set<string>; teams: Set<string> } | null {
-    const allowed =
-      rule.allowed && typeof rule.allowed === "object" ? rule.allowed : null;
-    if (!allowed) return null;
-    const users = Array.isArray(allowed.users) ? allowed.users.map(String) : [];
-    const teams = Array.isArray(allowed.teams) ? allowed.teams.map(String) : [];
-    if (users.length === 0 && teams.length === 0) return null;
-    return { users: new Set(users), teams: new Set(teams) };
+  /**
+   * Extract all allowed teams/users from an approver condition.
+   * This collects all teams/users mentioned anywhere in the condition tree.
+   */
+  private extractAllowedFromCondition(condition: ApproverCondition): {
+    users: Set<string>;
+    teams: Set<string>;
+  } {
+    const users = new Set<string>();
+    const teams = new Set<string>();
+
+    const extract = (cond: ApproverCondition) => {
+      if ("any" in cond) {
+        const anyVal = cond.any;
+        if (Array.isArray(anyVal)) {
+          for (const nested of anyVal) extract(nested);
+        } else {
+          // Map form - keys are team names
+          for (const team of Object.keys(anyVal)) teams.add(team);
+        }
+      } else if ("all" in cond) {
+        const allVal = cond.all;
+        if (Array.isArray(allVal)) {
+          for (const nested of allVal) extract(nested);
+        } else {
+          // Map form - keys are team names
+          for (const team of Object.keys(allVal)) teams.add(team);
+        }
+      } else if ("teams" in cond || "users" in cond) {
+        if (cond.teams) {
+          for (const team of Object.keys(cond.teams)) teams.add(team);
+        }
+        if (cond.users) {
+          for (const user of Object.keys(cond.users)) users.add(user);
+        }
+      }
+    };
+
+    extract(condition);
+    return { users, teams };
+  }
+
+  /**
+   * Check if an approver is allowed by the rule's approvers condition.
+   * Returns true if the user or any of their teams is mentioned in the condition.
+   */
+  private isApproverAllowedByCondition(
+    login: string,
+    perUserTeams: string[],
+    condition: ApproverCondition
+  ): boolean {
+    const { users, teams } = this.extractAllowedFromCondition(condition);
+    if (users.size === 0 && teams.size === 0) return true;
+    if (users.has(login)) return true;
+    for (const t of perUserTeams || []) {
+      if (teams.has(t)) return true;
+    }
+    return false;
   }
 
   isApproverAllowedForMaxRules(
@@ -148,13 +243,17 @@ export class WeightedApprovalsEngine {
     perUserTeams: string[],
     maxRules: ComputedRule[]
   ): boolean {
-    const allowedSets = maxRules
-      .map((r) => this.ruleAllowedSet(r))
-      .filter(Boolean) as Array<{ users: Set<string>; teams: Set<string> }>;
-    if (allowedSets.length === 0) return true;
-    for (const a of allowedSets) {
-      if (a.users.has(login)) return true;
-      for (const t of perUserTeams || []) if (a.teams.has(t)) return true;
+    // If no rules have approvers conditions, everyone is allowed
+    const rulesWithApprovers = maxRules.filter((r) => r.approvers);
+    if (rulesWithApprovers.length === 0) return true;
+
+    // Approver must be allowed by at least one rule with an approvers condition
+    for (const rule of rulesWithApprovers) {
+      if (
+        this.isApproverAllowedByCondition(login, perUserTeams, rule.approvers!)
+      ) {
+        return true;
+      }
     }
     return false;
   }

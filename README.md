@@ -18,7 +18,7 @@ It creates/updates a Check Run named `weighted-approvals` (configurable). Make t
 
 ### Quick start (self-test in this repo)
 
-If you’re developing this action, the fastest end-to-end test is using `uses: ./` (run the action from the same repo).
+If you're developing this action, the fastest end-to-end test is using `uses: ./` (run the action from the same repo).
 
 This repo already includes:
 - `.github/weighted-approvals.yml` (test config)
@@ -41,12 +41,12 @@ rules: []
 ```
 
 See full examples in:
-- [`examples/.github/weighted-approvals.yml`](examples/.github/weighted-approvals.yml)
+- [`examples/calcom/.github/weighted-approvals.yml`](examples/calcom/.github/weighted-approvals.yml)
 
 2) Add workflow: `.github/workflows/weighted-approvals.yml`
 
 See:
-- [`examples/.github/workflows/weighted-approvals.yml`](examples/.github/workflows/weighted-approvals.yml)
+- [`examples/calcom/.github/workflows/weighted-approvals.yml`](examples/calcom/.github/workflows/weighted-approvals.yml)
 
 3) Turn on branch protection
 
@@ -60,7 +60,7 @@ In your default branch protection rules, require the status check:
 ```yaml
 weights:
   # Optional: default weight for ANY approving reviewer not explicitly listed below.
-  # If set to 1, then “two +1 approvals can satisfy required_total=2”.
+  # If set to 1, then "two +1 approvals can satisfy required_total=2".
   # Default is 1 (unlisted approvers contribute +1).
   default: 1
   # Optional: how to combine user weights vs team weights (default: max)
@@ -78,11 +78,11 @@ weights:
 
 Notes:
 - Team keys are `org/team_slug`.
-- Team membership checks may require a token with **org read** permissions (often a PAT with `read:org`). If membership can’t be checked, team weights will be ignored and the check output will tell you why.
+- Team membership checks may require a token with **org read** permissions (often a PAT with `read:org`). If membership can't be checked, team weights will be ignored and the check output will tell you why.
 
 ### `rules`
 
-Rules are evaluated against the PR’s changed files. The **maximum** `required_total` among matching rules becomes the required threshold.
+Rules are evaluated against the PR's changed files. The **maximum** `required_total` among matching rules becomes the required threshold.
 
 ```yaml
 rules:
@@ -96,20 +96,82 @@ rules:
     required_total: 3
 ```
 
-#### Restrict who can satisfy the max rule (optional)
+### `approvers` - Control who can approve (optional)
 
-If the rule(s) that set the **max** required total have an `allowed` section, only those users/teams can contribute weight toward meeting the requirement.
+Use the `approvers` block to control which teams/users can approve and whether you need approvals from ANY or ALL of them.
+
+#### `any` - OR logic (any of these teams can approve)
 
 ```yaml
 rules:
-  - paths:
-      - "infra/**"
-    required_total: 3
-    allowed:
-      users:
-        - alice
-      teams:
-        - my-org/platform-reviewers
+  - paths: ["infra/**"]
+    required_total: 2
+    approvers:
+      any:
+        my-org/infra-team: 1
+        my-org/platform-team: 1
+```
+
+This means: approvals from `my-org/infra-team` OR `my-org/platform-team` count toward the required total of 2.
+
+#### `all` - AND logic (need approval from each team)
+
+```yaml
+rules:
+  - paths: ["apps/web/**"]
+    required_total: 2
+    approvers:
+      all:
+        my-org/frontend-team: 1
+        my-org/foundation-team: 1
+```
+
+This means: you need at least 1 approval from `my-org/frontend-team` AND at least 1 from `my-org/foundation-team`.
+
+#### Complex nested conditions
+
+You can nest `any` and `all` for complex boolean logic like "(A AND B) OR C":
+
+```yaml
+rules:
+  - paths: ["packages/critical/**"]
+    required_total: 2
+    approvers:
+      any:
+        - all:
+            my-org/frontend-team: 1
+            my-org/foundation-team: 1
+        - all:
+            my-org/admin-team: 2
+```
+
+This means: either (1 from frontend AND 1 from foundation) OR (2 from admin).
+
+#### With explicit users
+
+You can mix teams and users in complex conditions:
+
+```yaml
+rules:
+  - paths: ["infra/**"]
+    required_total: 2
+    approvers:
+      all:
+        - teams:
+            my-org/platform-team: 1
+          users:
+            alice: 1
+```
+
+#### No restriction (default)
+
+When `approvers` is omitted, anyone can approve:
+
+```yaml
+rules:
+  - paths: ["**"]
+    required_total: 1
+    # No approvers block - anyone can approve
 ```
 
 ### Label override (optional)
@@ -120,7 +182,7 @@ In the workflow you can configure a `label_prefix` (default `wa:+`). If a PR has
 
 ### PR comment directive override (optional): `ma:@org/team +2`
 
-You can also restrict “high weight” approvals per PR by adding a trusted comment like:
+You can also restrict "high weight" approvals per PR by adding a trusted comment like:
 
 - `ma:@my-org/platform-reviewers +2`
 
@@ -145,14 +207,14 @@ Recommended trigger depends on your goal:
 - `pull_request`: works when the workflow exists only on a feature branch (useful for development/testing). For PRs from forks, permissions may be restricted.
 - `pull_request_target`: more secure for enforcing rules on incoming PRs, but **the workflow must exist on the base branch** (e.g. `main`) to run.
 
-This action loads the config from the **base branch ref** (not from the PR’s head), so a PR can’t lower requirements by editing the config file.
+This action loads the config from the **base branch ref** (not from the PR's head), so a PR can't lower requirements by editing the config file.
 
 If you use the `ma:` PR comment directive feature, also trigger the workflow on `issue_comment` (created/edited/deleted) so the check updates when the directive comment changes.
 
 ## Limitations
 
 - **YAML parsing**: this repo uses a small, dependency-free YAML subset parser. It supports common mappings/arrays/scalars, but not advanced YAML features (anchors, multiline blocks, etc.). Keep the config simple.
-- **CODEOWNERS parity**: path patterns are “CODEOWNERS-ish” but not a byte-for-byte implementation.
+- **CODEOWNERS parity**: path patterns are "CODEOWNERS-ish" but not a byte-for-byte implementation.
 
 ## Inputs
 
@@ -200,24 +262,38 @@ This will:
 
 ## Replacing CODEOWNERS (example patterns)
 
-If you want “one approval from each owner team” (instead of “2 approvals from either team”), use `required_by.teams` on the rule:
+### Single owner team
+
+CODEOWNERS: `apps/api/** @my-org/api-team`
+
+weighted-approvals:
+```yaml
+rules:
+  - paths: ["apps/api/**"]
+    required_total: 1
+    approvers:
+      any:
+        my-org/api-team: 1
+```
+
+### Multiple owner teams (need one from each)
+
+CODEOWNERS: `apps/web/** @my-org/frontend-team @my-org/foundation-team`
+
+If you want "one approval from each owner team" (AND logic):
 
 ```yaml
 rules:
   - paths: ["apps/web/**"]
     required_total: 2
-    allowed:
-      teams: ["calcom/consumer", "calcom/foundation"]
-    required_by:
-      teams:
-        calcom/consumer: 1
-        calcom/foundation: 1
+    approvers:
+      all:
+        my-org/frontend-team: 1
+        my-org/foundation-team: 1
 ```
 
 ### What happens when multiple rules match?
 
 - **Required total**: we compute `required_total` as the **maximum** across all matching rules.
-- **Allowed approvers**: if the max-required rule(s) have `allowed`, only those users/teams can contribute weight.
-- **Per-team requirements** (`required_by.teams`): we merge requirements from the **max-required** matching rule(s) by taking the **max required count per team**. If any required team is missing, the check fails.
-
-
+- **Allowed approvers**: if the max-required rule(s) have `approvers`, only users/teams mentioned in the condition can contribute weight.
+- **Per-team requirements** (`all`): requirements are merged from the **max-required** matching rule(s) by taking the **max required count per team**. If any required team is missing, the check fails.

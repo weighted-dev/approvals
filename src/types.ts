@@ -9,6 +9,42 @@ export type AuthorAssociation =
   | "OWNER"
   | string;
 
+/**
+ * Approver condition using AND/OR logic.
+ *
+ * Simple forms (map of team/user -> count):
+ *   approvers:
+ *     any:
+ *       org/team-a: 1
+ *       org/team-b: 1
+ *
+ *   approvers:
+ *     all:
+ *       org/team-a: 1
+ *       org/team-b: 1
+ *
+ * Complex nested form (array for boolean combinations):
+ *   approvers:
+ *     any:
+ *       - all:
+ *           org/team-a: 1
+ *           org/team-b: 1
+ *       - all:
+ *           org/admins: 2
+ *
+ * With explicit teams/users:
+ *   approvers:
+ *     all:
+ *       - teams:
+ *           org/team-a: 1
+ *         users:
+ *           alice: 1
+ */
+export type ApproverCondition =
+  | { any: ApproverCondition[] | Record<string, number> }
+  | { all: ApproverCondition[] | Record<string, number> }
+  | { teams?: Record<string, number>; users?: Record<string, number> };
+
 export interface WeightedApprovalsConfig {
   weights: {
     users: Record<string, number>;
@@ -25,21 +61,14 @@ export interface WeightedApprovalsConfig {
   rules: Array<{
     paths: string[];
     required_total: number;
-    allowed?: {
-      users?: string[];
-      teams?: string[];
-    };
     /**
-     * Optional per-team requirements.
-     * Example: require at least 1 approval from each team listed:
-     *   required_by:
-     *     teams:
-     *       calcom/foundation: 1
-     *       calcom/consumer: 1
+     * Define who can approve using AND/OR logic.
+     * - `any`: OR logic - approvals from any listed team/user count
+     * - `all`: AND logic - need approvals from each listed team/user
+     *
+     * When omitted, anyone can approve.
      */
-    required_by?: {
-      teams?: Record<string, number>;
-    };
+    approvers?: ApproverCondition;
   }>;
   labels?: Record<string, unknown>;
 }
