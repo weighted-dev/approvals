@@ -1,0 +1,58 @@
+weights:
+  # Default weight for unlisted approvers
+  default: 1
+  precedence: max
+
+  # Replace with your real org/team slugs
+  teams:
+    calcom/foundation: 1
+    calcom/api: 1
+    calcom/consumer: 1
+    calcom/platform: 1
+
+rules:
+  # Baseline: any PR needs 1 approval
+  - paths: ["**"]
+    required_total: 1
+
+  # /**/package.json @calcom/Foundation
+  - paths: ["**/package.json"]
+    required_total: 1
+    allowed:
+      teams: ["calcom/foundation"]
+
+  # /apps/api/**/* @calcom/API
+  - paths: ["apps/api/**"]
+    required_total: 1
+    allowed:
+      teams: ["calcom/api"]
+
+  # /apps/ui-playground/**/* @calcom/Consumer @calcom/Foundation
+  - paths: ["apps/ui-playground/**"]
+    required_total: 2
+    allowed:
+      teams: ["calcom/consumer", "calcom/foundation"]
+    required_by:
+      teams:
+        calcom/consumer: 1
+        calcom/foundation: 1
+
+  # /apps/web/**/layout.tsx @calcom/Consumer @calcom/Foundation
+  - paths: ["apps/web/**/layout.tsx"]
+    required_total: 2
+    allowed:
+      teams: ["calcom/consumer", "calcom/foundation"]
+    required_by:
+      teams:
+        calcom/consumer: 1
+        calcom/foundation: 1
+
+  # /packages/platform/**/* @calcom/Platform @calcom/Foundation
+  - paths: ["packages/platform/**"]
+    required_total: 2
+    allowed:
+      teams: ["calcom/platform", "calcom/foundation"]
+    required_by:
+      teams:
+        calcom/platform: 1
+        calcom/foundation: 1

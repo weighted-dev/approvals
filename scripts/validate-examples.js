@@ -73,6 +73,21 @@ function validateWorkflowInputs(workflowPath, allowedInputs) {
   }
 }
 
+function listFilesRecursive(rootDir) {
+  const out = [];
+  const stack = [rootDir];
+  while (stack.length) {
+    const d = stack.pop();
+    if (!d) continue;
+    for (const ent of fs.readdirSync(d, { withFileTypes: true })) {
+      const p = path.join(d, ent.name);
+      if (ent.isDirectory()) stack.push(p);
+      else if (ent.isFile()) out.push(p);
+    }
+  }
+  return out;
+}
+
 function validateConfig(configPath) {
   const cfg = loadYamlFile(configPath);
   assert(isObject(cfg), `${path.relative(process.cwd(), configPath)} must be a mapping`);
@@ -98,13 +113,29 @@ function main() {
   const repoRoot = process.cwd();
   const actionInputs = collectActionInputs(path.join(repoRoot, "action.yml"));
 
-  // Workflows we expect to stay in sync
-  validateWorkflowInputs(path.join(repoRoot, ".github/workflows/wa-test.yml"), actionInputs);
-  validateWorkflowInputs(path.join(repoRoot, "examples/.github/workflows/weighted-approvals.yml"), actionInputs);
+  // Validate all workflows under repo .github/workflows and examples/**/.github/workflows
+  const workflowPaths = [
+    path.join(repoRoot, ".github/workflows/wa-test.yml"),
+    ...listFilesRecursive(path.join(repoRoot, "examples"))
+      .filter((p) => p.includes(`${path.sep}.github${path.sep}workflows${path.sep}`))
+      .filter((p) => p.endsWith(".yml") || p.endsWith(".yaml")),
+  ].filter((p) => fs.existsSync(p));
 
-  // Config examples
-  validateConfig(path.join(repoRoot, "examples/.github/weighted-approvals.yml"));
-  validateConfig(path.join(repoRoot, ".github/weighted-approvals.yml"));
+  for (const wf of workflowPaths) validateWorkflowInputs(wf, actionInputs);
+
+  // Validate all configs named weighted-approvals.yml under examples/**/.github and the repo self-test config.
+  const configPaths = [
+    path.join(repoRoot, ".github/weighted-approvals.yml"),
+    ...listFilesRecursive(path.join(repoRoot, "examples"))
+      .filter((p) => p.endsWith(`${path.sep}weighted-approvals.yml`) || p.endsWith(`${path.sep}weighted-approvals.yaml`))
+      .filter((p) => p.includes(`${path.sep}.github${path.sep}`)),
+  ].filter((p) => fs.existsSync(p));
+
+  for (const c of configPaths) {
+    // Don't treat workflow files as configs (some workflows may be named weighted-approvals.yml).
+    if (c.includes(`${path.sep}.github${path.sep}workflows${path.sep}`)) continue;
+    validateConfig(c);
+  }
 
   console.log("examples validation: OK");
 }
