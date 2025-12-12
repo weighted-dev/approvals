@@ -295,6 +295,12 @@ export class WeightedApprovalsEngine {
     matchedRules: ComputedRule[];
     maxRules: ComputedRule[];
     teamErrors: string[];
+    aiAnalysis?: {
+      criticality: number;
+      suggestedTeams: string[];
+      reasoning: string;
+      requiredApprovers: number;
+    } | null;
   }): string {
     const {
       owner,
@@ -314,6 +320,7 @@ export class WeightedApprovalsEngine {
       matchedRules,
       maxRules,
       teamErrors,
+      aiAnalysis,
     } = args;
 
     const lines: string[] = [];
@@ -328,6 +335,18 @@ export class WeightedApprovalsEngine {
       }`
     );
     lines.push(`Current total: ${currentTotal}`);
+
+    // AI analysis section
+    if (aiAnalysis) {
+      lines.push("");
+      lines.push("AI Analysis:");
+      lines.push(`- Criticality: ${aiAnalysis.criticality}/10`);
+      lines.push(`- Required approvers (AI): ${aiAnalysis.requiredApprovers}`);
+      if (aiAnalysis.suggestedTeams.length > 0) {
+        lines.push(`- Suggested teams: ${aiAnalysis.suggestedTeams.join(", ")}`);
+      }
+      lines.push(`- Reasoning: ${aiAnalysis.reasoning}`);
+    }
 
     const requiredTeamsList = Object.keys(requiredByTeams || {});
     if (requiredTeamsList.length > 0) {

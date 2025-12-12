@@ -6,9 +6,11 @@ import {
   Copy,
   Check,
   Terminal,
+  Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import { WeightedApprovalDemo } from "../components/WeightedApprovalDemo";
+import { AiAssigningDemo } from "../components/AiAssigningDemo";
 import { ShikiCode } from "../components/ShikiCode";
 
 export const Route = createFileRoute("/")({
@@ -115,6 +117,76 @@ jobs:
     steps:
       - uses: weighted-dev/approvals@v1`;
 
+function DemoToggle() {
+  const [mode, setMode] = useState<"rules" | "ai">("rules");
+
+  return (
+    <div className="w-full max-w-4xl mx-auto">
+      {/* Toggle */}
+      <div className="flex justify-center mb-4">
+        <div
+          className="inline-flex rounded-lg p-1"
+          style={{
+            backgroundColor: "var(--color-canvas-subtle)",
+            border: "1px solid var(--color-border-default)",
+          }}
+        >
+          <button
+            onClick={() => setMode("rules")}
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all"
+            style={{
+              backgroundColor:
+                mode === "rules" ? "var(--color-canvas-default)" : "transparent",
+              color:
+                mode === "rules"
+                  ? "var(--color-fg-default)"
+                  : "var(--color-fg-muted)",
+              boxShadow:
+                mode === "rules"
+                  ? "0 1px 3px rgba(0,0,0,0.1)"
+                  : "none",
+            }}
+          >
+            <FolderTree className="w-4 h-4" />
+            Path Rules
+          </button>
+          <button
+            onClick={() => setMode("ai")}
+            className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all"
+            style={{
+              backgroundColor:
+                mode === "ai" ? "var(--color-canvas-default)" : "transparent",
+              color:
+                mode === "ai"
+                  ? "var(--color-fg-default)"
+                  : "var(--color-fg-muted)",
+              boxShadow:
+                mode === "ai"
+                  ? "0 1px 3px rgba(0,0,0,0.1)"
+                  : "none",
+            }}
+          >
+            <Sparkles className="w-4 h-4" />
+            AI Mode
+            <span
+              className="text-xs px-1.5 py-0.5 rounded-full"
+              style={{
+                backgroundColor: "var(--color-done-subtle)",
+                color: "var(--color-done-fg)",
+              }}
+            >
+              New
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Demo Content */}
+      {mode === "rules" ? <WeightedApprovalDemo /> : <AiAssigningDemo />}
+    </div>
+  );
+}
+
 function LandingPage() {
   return (
     <main style={{ backgroundColor: "var(--color-canvas-default)" }}>
@@ -171,8 +243,8 @@ function LandingPage() {
             </a>
           </div>
 
-          {/* Demo */}
-          <WeightedApprovalDemo />
+          {/* Demo Mode Toggle */}
+          <DemoToggle />
         </div>
       </section>
 

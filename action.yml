@@ -1,5 +1,5 @@
 name: weighted-approvals
-description: Gerrit/Jenkins-style weighted approvals enforced via a required GitHub Check Run.
+description: Gerrit/Jenkins-style weighted approvals enforced via a required GitHub Check Run. Supports AI-powered PR analysis.
 author: weighted-approvals
 branding:
   icon: lock

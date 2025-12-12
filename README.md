@@ -297,3 +297,87 @@ rules:
 - **Required total**: we compute `required_total` as the **maximum** across all matching rules.
 - **Allowed approvers**: if the max-required rule(s) have `approvers`, only users/teams mentioned in the condition can contribute weight.
 - **Per-team requirements** (`all`): requirements are merged from the **max-required** matching rule(s) by taking the **max required count per team**. If any required team is missing, the check fails.
+
+## AI-Powered PR Analysis (Experimental)
+
+Instead of (or in addition to) path-based rules, you can enable AI-powered analysis that uses an LLM to assess PR criticality and suggest which teams should review.
+
+### How it works
+
+1. The AI analyzes the PR diff and changed file paths
+2. It assigns a criticality score (1-10) based on the nature of the changes
+3. The criticality maps to a required approver count within your configured range
+4. It suggests relevant teams for review based on the changes
+
+The AI result can **override** path-based rules - the final `required_total` is the maximum of:
+- Path-based rule requirements
+- Label override (if any)
+- AI-computed requirement
+
+### Configuration
+
+Add an `ai` block to your `.github/weighted-approvals.yml`:
+
+```yaml
+ai:
+  enabled: true
+  provider: openai  # or "anthropic"
+  api_key_env: OPENAI_API_KEY  # Environment variable name containing your API key
+  model: gpt-4o  # Optional: override default model
+  
+  # Criticality range: AI returns 1-10, maps to this range of required approvers
+  criticality_range:
+    min: 1  # Low criticality (1-2) = 1 approver
+    max: 5  # High criticality (9-10) = 5 approvers
+  
+  # Teams the AI can suggest for review
+  teams:
+    - my-org/frontend
+    - my-org/backend
+    - my-org/security
+    - my-org/platform
+  
+  # Optional: descriptions to help the AI make better suggestions
+  team_descriptions:
+    my-org/security: "Reviews authentication, authorization, crypto, and sensitive data handling"
+    my-org/frontend: "Reviews React components, UI/UX, and accessibility"
+    my-org/backend: "Reviews API endpoints, database queries, and server logic"
+```
+
+### Workflow setup
+
+Pass your LLM API key as an environment variable:
+
+```yaml
+- name: Weighted Approvals
+  uses: your-org/weighted-approvals@v1
+  with:
+    token: ${{ secrets.GITHUB_TOKEN }}
+  env:
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    # or for Anthropic:
+    # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+### Criticality scale
+
+The AI uses this scale when assessing changes:
+
+| Score | Level | Examples |
+|-------|-------|----------|
+| 1-2 | Trivial | Typos, comments, minor formatting |
+| 3-4 | Low risk | Small bug fixes, minor refactors, test additions |
+| 5-6 | Medium risk | New features, moderate refactors, dependency updates |
+| 7-8 | High risk | Security-related, database changes, API changes, breaking changes |
+| 9-10 | Critical | Authentication, authorization, payment processing, data migration |
+
+### Error handling
+
+AI errors never fail the check - if the LLM API is unavailable or returns an invalid response, the action falls back to path-based rules only and logs a warning.
+
+### Bring your own key (BYOK)
+
+The `api_key_env` field specifies which environment variable contains your API key. This lets you:
+- Use different keys for different repos
+- Rotate keys without changing config
+- Keep keys in GitHub Secrets where they belong

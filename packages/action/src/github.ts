@@ -148,6 +148,21 @@ export class GitHubClient {
     if (!r.ok) throw new Error(`Failed team membership check: ${r.status} ${r.text}`);
     return (r.json as any)?.state === "active";
   }
+
+  /**
+   * Fetch the unified diff for a pull request.
+   */
+  async getPullDiff(pullNumber: number): Promise<string> {
+    const url = this.apiUrl(`/pulls/${pullNumber}`);
+    debugLog(this.debug, "Get PR diff", url);
+    const r = await this.request<string>({
+      method: "GET",
+      url,
+      accept: "application/vnd.github.v3.diff",
+    });
+    if (!r.ok) throw new Error(`Failed to get PR diff: ${r.status} ${r.text}`);
+    return r.text;
+  }
 }
 
 

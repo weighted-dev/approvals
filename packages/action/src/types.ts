@@ -45,6 +45,29 @@ export type ApproverCondition =
   | { all: ApproverCondition[] | Record<string, number> }
   | { teams?: Record<string, number>; users?: Record<string, number> };
 
+/**
+ * Configuration for AI-powered PR analysis.
+ */
+export interface AIConfig {
+  /** Whether AI analysis is enabled */
+  enabled: boolean;
+  /** LLM provider to use */
+  provider: "openai" | "anthropic";
+  /** Environment variable name containing the API key (BYOK) */
+  apiKeyEnv: string;
+  /** Optional model override */
+  model?: string;
+  /** Criticality range mapping (1-10 maps to min-max approvers) */
+  criticalityRange: {
+    min: number;
+    max: number;
+  };
+  /** Teams that the AI can suggest for review */
+  teams: string[];
+  /** Optional team descriptions to help AI make better suggestions */
+  teamDescriptions?: Record<string, string>;
+}
+
 export interface WeightedApprovalsConfig {
   weights: {
     users: Record<string, number>;
@@ -71,6 +94,8 @@ export interface WeightedApprovalsConfig {
     approvers?: ApproverCondition;
   }>;
   labels?: Record<string, unknown>;
+  /** AI-powered PR analysis configuration */
+  ai?: AIConfig;
 }
 
 export interface MaOverride {

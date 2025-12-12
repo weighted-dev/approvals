@@ -1,4 +1,4 @@
-import type { ApproverCondition, WeightedApprovalsConfig } from "./types";
+import type { AIConfig, ApproverCondition, WeightedApprovalsConfig } from "./types";
 
 export class ConfigLoader {
   normalize(raw: any): WeightedApprovalsConfig {
@@ -55,6 +55,9 @@ export class ConfigLoader {
       normRules.push({ paths, required_total: req, approvers });
     }
 
+    // Parse AI config
+    const ai = this.parseAIConfig(raw.ai);
+
     return {
       weights: {
         users: normUsers,
@@ -65,6 +68,76 @@ export class ConfigLoader {
       rules: normRules,
       labels:
         raw.labels && typeof raw.labels === "object" ? raw.labels : undefined,
+      ai,
+    };
+  }
+
+  /**
+   * Parse AI configuration block.
+   */
+  private parseAIConfig(raw: any): AIConfig | undefined {
+    if (!raw || typeof raw !== "object") return undefined;
+
+    const enabled = raw.enabled === true;
+    if (!enabled) return undefined;
+
+    const provider = raw.provider;
+    if (provider !== "openai" && provider !== "anthropic") {
+      return undefined;
+    }
+
+    // api_key_env is required
+    const apiKeyEnv = typeof raw.api_key_env === "string" ? raw.api_key_env : undefined;
+    if (!apiKeyEnv) {
+      return undefined;
+    }
+
+    // Parse criticality_range
+    const criticalityRangeRaw = raw.criticality_range;
+    let criticalityRange = { min: 1, max: 3 };
+    if (criticalityRangeRaw && typeof criticalityRangeRaw === "object") {
+      const min = Number(criticalityRangeRaw.min);
+      const max = Number(criticalityRangeRaw.max);
+      if (Number.isFinite(min) && Number.isFinite(max) && min > 0 && max >= min) {
+        criticalityRange = { min, max };
+      }
+    }
+
+    // Parse teams array
+    const teams: string[] = [];
+    if (Array.isArray(raw.teams)) {
+      for (const t of raw.teams) {
+        if (typeof t === "string" && t.trim()) {
+          teams.push(t.trim());
+        }
+      }
+    }
+
+    // Parse team_descriptions
+    let teamDescriptions: Record<string, string> | undefined;
+    if (raw.team_descriptions && typeof raw.team_descriptions === "object") {
+      teamDescriptions = {};
+      for (const [k, v] of Object.entries(raw.team_descriptions)) {
+        if (typeof v === "string") {
+          teamDescriptions[String(k)] = v;
+        }
+      }
+      if (Object.keys(teamDescriptions).length === 0) {
+        teamDescriptions = undefined;
+      }
+    }
+
+    // Parse optional model
+    const model = typeof raw.model === "string" ? raw.model : undefined;
+
+    return {
+      enabled: true,
+      provider,
+      apiKeyEnv,
+      model,
+      criticalityRange,
+      teams,
+      teamDescriptions,
     };
   }
 

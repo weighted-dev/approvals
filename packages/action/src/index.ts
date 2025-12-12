@@ -5,6 +5,7 @@ import { DirectiveService } from "./directives";
 import { WeightedApprovalsEngine } from "./engine";
 import { GlobMatcher } from "./glob";
 import { GitHubClient } from "./github";
+import { createAIAnalyzer, type AIAnalysisResult } from "./llm";
 import type { MaOverride } from "./types";
 import { getInput, toBool, readJsonFile, fail, notice, debugLog } from "./util";
 import { WeightResolver } from "./weights";
@@ -87,8 +88,65 @@ class ActionApp {
       maxRules,
     } = engine.computeRequired(configObj.rules, changedFiles);
     const labelOverride = engine.findLabelOverride(labelPrefix, prLabels);
-    const requiredTotal = Math.max(rulesRequired, labelOverride ?? 0);
+
+    // AI-powered analysis (if enabled)
+    let aiResult: AIAnalysisResult | null = null;
+    let aiRequiredTotal = 0;
+    let aiSuggestedTeams: Record<string, number> = {};
+
+    const aiAnalyzer = createAIAnalyzer(configObj.ai, debug);
+    if (aiAnalyzer) {
+      try {
+        debugLog(debug, "AI analysis enabled, fetching diff...");
+        const diff = await gh.getPullDiff(pullNumber);
+        const prTitle = pr?.title || "";
+        const prDescription = pr?.body || "";
+
+        aiResult = await aiAnalyzer.analyze({
+          diff,
+          files: changedFiles,
+          prTitle,
+          prDescription,
+        });
+
+        debugLog(
+          debug,
+          `AI analysis result: criticality=${aiResult.criticality}, teams=${aiResult.suggestedTeams.join(", ")}, reasoning=${aiResult.reasoning}`
+        );
+
+        // Map criticality to required approvers
+        aiRequiredTotal = aiAnalyzer.mapCriticalityToApprovers(
+          aiResult.criticality
+        );
+
+        // Build AI-suggested team requirements (each suggested team requires 1 approval)
+        for (const team of aiResult.suggestedTeams) {
+          aiSuggestedTeams[team] = 1;
+        }
+      } catch (e: any) {
+        // AI errors should not fail the check - fall back to path-based rules
+        debugLog(
+          debug,
+          `AI analysis failed (falling back to path-based rules): ${e?.message || e}`
+        );
+        console.warn(
+          `[AI] Analysis failed: ${e?.message || e}. Using path-based rules only.`
+        );
+      }
+    }
+
+    // Final required total: max of path-based rules, label override, and AI requirement
+    const requiredTotal = Math.max(
+      rulesRequired,
+      labelOverride ?? 0,
+      aiRequiredTotal
+    );
+
+    // Merge team requirements: path-based + AI-suggested
     const requiredByTeams = engine.computeRequiredByTeams(maxRules);
+    for (const [team, count] of Object.entries(aiSuggestedTeams)) {
+      requiredByTeams[team] = Math.max(requiredByTeams[team] || 0, count);
+    }
 
     const reviews = await gh.listPullReviews(pullNumber);
     const latest = engine.latestReviewsByUser(reviews);
@@ -194,6 +252,14 @@ class ActionApp {
       matchedRules,
       maxRules,
       teamErrors,
+      aiAnalysis: aiResult
+        ? {
+            criticality: aiResult.criticality,
+            suggestedTeams: aiResult.suggestedTeams,
+            reasoning: aiResult.reasoning,
+            requiredApprovers: aiRequiredTotal,
+          }
+        : null,
     });
 
     const output = { title, summary, text: summary };
