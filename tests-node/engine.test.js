@@ -47,4 +47,35 @@ test("Engine: allowlist on max rule gates contribution", () => {
   assert.equal(engine.isApproverAllowedForMaxRules("carol", ["org/other"], maxRules), false);
 });
 
+test("Engine: required_by.teams merges across max rules (max per team)", () => {
+  const engine = new WeightedApprovalsEngine(new GlobMatcher());
+  const maxRules = [
+    { paths: ["a/**"], required_total: 2, required_by: { teams: { "org/foundation": 1 } } },
+    { paths: ["b/**"], required_total: 2, required_by: { teams: { "org/foundation": 2, "org/consumer": 1 } } },
+  ];
+  const req = engine.computeRequiredByTeams(maxRules);
+  assert.deepEqual(req, { "org/foundation": 2, "org/consumer": 1 });
+});
+
+test("Engine: team satisfaction counts approvers by team membership", () => {
+  const engine = new WeightedApprovalsEngine(new GlobMatcher());
+  const requiredByTeams = { "org/foundation": 1, "org/consumer": 1 };
+  const countedApprovers = [
+    { login: "a", matchedTeams: ["org/foundation"] },
+    { login: "b", matchedTeams: ["org/foundation", "org/consumer"] },
+  ];
+  const sat = engine.computeTeamSatisfaction({ requiredByTeams, countedApprovers });
+  assert.equal(sat.ok, true);
+  assert.deepEqual(sat.missing, []);
+});
+
+test("Engine: team satisfaction reports missing teams", () => {
+  const engine = new WeightedApprovalsEngine(new GlobMatcher());
+  const requiredByTeams = { "org/foundation": 1, "org/consumer": 1 };
+  const countedApprovers = [{ login: "a", matchedTeams: ["org/foundation"] }];
+  const sat = engine.computeTeamSatisfaction({ requiredByTeams, countedApprovers });
+  assert.equal(sat.ok, false);
+  assert.deepEqual(sat.missing, ["org/consumer (0/1)"]);
+});
+
 

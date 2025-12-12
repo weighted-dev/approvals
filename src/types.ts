@@ -29,6 +29,17 @@ export interface WeightedApprovalsConfig {
       users?: string[];
       teams?: string[];
     };
+    /**
+     * Optional per-team requirements.
+     * Example: require at least 1 approval from each team listed:
+     *   required_by:
+     *     teams:
+     *       calcom/foundation: 1
+     *       calcom/consumer: 1
+     */
+    required_by?: {
+      teams?: Record<string, number>;
+    };
   }>;
   labels?: Record<string, unknown>;
 }

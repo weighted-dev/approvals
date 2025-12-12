@@ -42,7 +42,21 @@ export class ConfigLoader {
             }
           : undefined;
 
-      normRules.push({ paths, required_total: req, allowed });
+      const requiredByRaw = (r as any).required_by;
+      let required_by: WeightedApprovalsConfig["rules"][number]["required_by"] | undefined = undefined;
+      if (requiredByRaw && typeof requiredByRaw === "object") {
+        const teamsRaw = (requiredByRaw as any).teams;
+        if (teamsRaw && typeof teamsRaw === "object") {
+          const teams: Record<string, number> = {};
+          for (const [k, v] of Object.entries(teamsRaw)) {
+            const n = Number(v as any);
+            if (Number.isFinite(n) && n > 0) teams[String(k)] = n;
+          }
+          if (Object.keys(teams).length > 0) required_by = { teams };
+        }
+      }
+
+      normRules.push({ paths, required_total: req, allowed, required_by });
     }
 
     return {

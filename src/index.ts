@@ -88,6 +88,7 @@ class ActionApp {
     } = engine.computeRequired(configObj.rules, changedFiles);
     const labelOverride = engine.findLabelOverride(labelPrefix, prLabels);
     const requiredTotal = Math.max(rulesRequired, labelOverride ?? 0);
+    const requiredByTeams = engine.computeRequiredByTeams(maxRules);
 
     const reviews = await gh.listPullReviews(pullNumber);
     const latest = engine.latestReviewsByUser(reviews);
@@ -162,7 +163,14 @@ class ActionApp {
       });
     }
 
-    const passed = currentTotal >= requiredTotal;
+    const teamSatisfaction = engine.computeTeamSatisfaction({
+      requiredByTeams,
+      countedApprovers,
+    });
+
+    const passedTotal = currentTotal >= requiredTotal;
+    const passedTeams = teamSatisfaction.ok;
+    const passed = passedTotal && passedTeams;
     const conclusion = passed ? "success" : "failure";
     const title = passed
       ? "Weighted approvals satisfied"
@@ -179,6 +187,8 @@ class ActionApp {
       labelOverride,
       maOverride,
       currentTotal,
+      requiredByTeams,
+      teamSatisfaction,
       countedApprovers,
       skippedApprovers,
       matchedRules,

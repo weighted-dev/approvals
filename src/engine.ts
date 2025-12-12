@@ -5,6 +5,7 @@ export interface ComputedRule {
   paths: string[];
   required_total: number;
   allowed?: { users?: string[]; teams?: string[] };
+  required_by?: { teams?: Record<string, number> };
 }
 
 export interface ComputedResult {
@@ -68,6 +69,44 @@ export class WeightedApprovalsEngine {
     for (const r of matched) max = Math.max(max, Number(r.required_total));
     const maxRules = matched.filter((r) => Number(r.required_total) === max);
     return { requiredTotal: max, matchedRules: matched, maxRules };
+  }
+
+  computeRequiredByTeams(maxRules: ComputedRule[]): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const r of maxRules || []) {
+      const teams = r.required_by?.teams;
+      if (!teams) continue;
+      for (const [team, nRaw] of Object.entries(teams)) {
+        const n = Number(nRaw);
+        if (!Number.isFinite(n) || n <= 0) continue;
+        out[team] = Math.max(out[team] || 0, n);
+      }
+    }
+    return out;
+  }
+
+  computeTeamSatisfaction(args: {
+    requiredByTeams: Record<string, number>;
+    countedApprovers: Array<{ login: string; matchedTeams: string[] }>;
+  }): { ok: boolean; counts: Record<string, number>; missing: string[] } {
+    const { requiredByTeams, countedApprovers } = args;
+    const counts: Record<string, number> = {};
+    for (const team of Object.keys(requiredByTeams || {})) counts[team] = 0;
+
+    for (const a of countedApprovers || []) {
+      for (const team of Object.keys(requiredByTeams || {})) {
+        if (a.matchedTeams && a.matchedTeams.includes(team)) counts[team] = (counts[team] || 0) + 1;
+      }
+    }
+
+    const missing: string[] = [];
+    for (const [team, needRaw] of Object.entries(requiredByTeams || {})) {
+      const need = Number(needRaw);
+      const have = counts[team] || 0;
+      if (Number.isFinite(need) && have < need) missing.push(`${team} (${have}/${need})`);
+    }
+
+    return { ok: missing.length === 0, counts, missing };
   }
 
   latestReviewsByUser(reviews: any[]): Array<{ login: string; review: any }> {
@@ -146,6 +185,8 @@ export class WeightedApprovalsEngine {
     labelOverride: number | null;
     maOverride: MaOverride | null;
     currentTotal: number;
+    requiredByTeams: Record<string, number>;
+    teamSatisfaction: { ok: boolean; missing: string[] };
     countedApprovers: Array<{
       login: string;
       weight: number;
@@ -167,6 +208,8 @@ export class WeightedApprovalsEngine {
       labelOverride,
       maOverride,
       currentTotal,
+      requiredByTeams,
+      teamSatisfaction,
       countedApprovers,
       skippedApprovers,
       matchedRules,
@@ -186,6 +229,19 @@ export class WeightedApprovalsEngine {
       }`
     );
     lines.push(`Current total: ${currentTotal}`);
+
+    const requiredTeamsList = Object.keys(requiredByTeams || {});
+    if (requiredTeamsList.length > 0) {
+      lines.push("");
+      lines.push("Required by team:");
+      for (const team of requiredTeamsList) {
+        lines.push(`- ${team}: ${requiredByTeams[team]}`);
+      }
+      if (!teamSatisfaction.ok) {
+        lines.push("Missing team approvals:");
+        for (const m of teamSatisfaction.missing) lines.push(`- ${m}`);
+      }
+    }
     if (maOverride) {
       lines.push("");
       lines.push(

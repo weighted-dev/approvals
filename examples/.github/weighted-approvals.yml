@@ -20,6 +20,10 @@ rules:
       - "src/**"
       - "lib/**"
     required_total: 2
+    # Optional: require one approval from each listed team (CODEOWNERS-like)
+    required_by:
+      teams:
+        my-org/app-reviewers: 1
 
   # Infrastructure changes require +3 total, and only platform reviewers can satisfy it
   - paths:
@@ -29,5 +33,6 @@ rules:
     allowed:
       teams:
         - my-org/platform-reviewers
-
-
+    required_by:
+      teams:
+        my-org/platform-reviewers: 1

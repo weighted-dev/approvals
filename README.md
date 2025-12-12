@@ -198,4 +198,26 @@ This will:
 - rebuild and commit `dist/index.js`
 - create tags `v1.2.3` and move `v1`
 
+## Replacing CODEOWNERS (example patterns)
+
+If you want “one approval from each owner team” (instead of “2 approvals from either team”), use `required_by.teams` on the rule:
+
+```yaml
+rules:
+  - paths: ["apps/web/**"]
+    required_total: 2
+    allowed:
+      teams: ["calcom/consumer", "calcom/foundation"]
+    required_by:
+      teams:
+        calcom/consumer: 1
+        calcom/foundation: 1
+```
+
+### What happens when multiple rules match?
+
+- **Required total**: we compute `required_total` as the **maximum** across all matching rules.
+- **Allowed approvers**: if the max-required rule(s) have `allowed`, only those users/teams can contribute weight.
+- **Per-team requirements** (`required_by.teams`): we merge requirements from the **max-required** matching rule(s) by taking the **max required count per team**. If any required team is missing, the check fails.
+
 
