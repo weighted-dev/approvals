@@ -37,7 +37,10 @@ echo "Building (tsc + ncc) ..."
 npm run build:all
 
 echo "Committing release..."
-git add package.json package-lock.json dist/index.js
+git add package.json dist/index.js
+# Add lock file if it exists (supports both npm and pnpm)
+[[ -f package-lock.json ]] && git add package-lock.json
+[[ -f pnpm-lock.yaml ]] && git add pnpm-lock.yaml
 git commit -m "Release v${VERSION}"
 
 echo "Tagging..."
