@@ -11,7 +11,8 @@
     "build:all": "npm run build && npm run bundle",
     "build:watch": "tsc -p tsconfig.json -w",
     "test:local": "node dist/index.js",
-    "validate:examples": "node scripts/validate-examples.js"
+    "validate:examples": "node scripts/validate-examples.js",
+    "test": "npm run build && node --test tests-node"
   },
   "dependencies": {
     "yaml": "^2.6.1"
