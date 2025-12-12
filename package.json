@@ -1,7 +1,7 @@
 {
   "name": "weighted-approvals",
   "private": true,
-  "version": "0.1.1",
+  "version": "1.1.5",
   "description": "Gerrit/Jenkins-style weighted approvals enforced via a required GitHub Check Run.",
   "license": "MIT",
   "type": "commonjs",
