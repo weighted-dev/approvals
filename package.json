@@ -10,7 +10,8 @@
     "bundle": "ncc build lib/index.js -o dist --minify",
     "build:all": "npm run build && npm run bundle",
     "build:watch": "tsc -p tsconfig.json -w",
-    "test:local": "node dist/index.js"
+    "test:local": "node dist/index.js",
+    "validate:examples": "node scripts/validate-examples.js"
   },
   "dependencies": {
     "yaml": "^2.6.1"

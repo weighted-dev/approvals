@@ -8,6 +8,7 @@ export class ConfigLoader {
     const users = (weights.users && typeof weights.users === "object" ? weights.users : {}) || {};
     const teams = (weights.teams && typeof weights.teams === "object" ? weights.teams : {}) || {};
     const defaultWeightRaw = (weights as any).default;
+    const precedenceRaw = (weights as any).precedence;
     const rules = Array.isArray(raw.rules) ? raw.rules : [];
 
     const normUsers: Record<string, number> = {};
@@ -23,6 +24,8 @@ export class ConfigLoader {
     }
 
     const defaultWeight = Number(defaultWeightRaw);
+    const precedence =
+      precedenceRaw === "user" || precedenceRaw === "team" || precedenceRaw === "max" ? precedenceRaw : "max";
 
     const normRules: WeightedApprovalsConfig["rules"] = [];
     for (const r of rules) {
@@ -47,6 +50,7 @@ export class ConfigLoader {
         users: normUsers,
         teams: normTeams,
         default: Number.isFinite(defaultWeight) ? defaultWeight : 1,
+        precedence,
       },
       rules: normRules,
       labels: raw.labels && typeof raw.labels === "object" ? raw.labels : undefined,

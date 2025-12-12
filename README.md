@@ -63,6 +63,11 @@ weights:
   # If set to 1, then “two +1 approvals can satisfy required_total=2”.
   # Default is 1 (unlisted approvers contribute +1).
   default: 1
+  # Optional: how to combine user weights vs team weights (default: max)
+  # - max: use the higher of user/default and any matching team weight
+  # - user: if user is explicitly listed, use that value and ignore teams
+  # - team: if user matches any team, use the team value and ignore explicit user weight
+  precedence: max
   users:
     alice: 2
     bob: 1

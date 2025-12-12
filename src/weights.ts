@@ -12,6 +12,7 @@ export class WeightResolver {
 
   async compute(config: WeightedApprovalsConfig, approverLogins: string[]): Promise<{ perUser: Map<string, PerUserWeight>; teamErrors: string[] }> {
     const defaultWeight = Number.isFinite(Number(config.weights.default)) ? Number(config.weights.default) : 0;
+    const precedence = config.weights.precedence || "max";
 
     const userWeights: Record<string, number> = {};
     for (const [u, w] of Object.entries(config.weights.users || {})) {
@@ -33,17 +34,30 @@ export class WeightResolver {
       const userWeight = hasExplicitUserWeight ? userWeights[login] : defaultWeight;
       let weight = userWeight;
       const matchedTeams: string[] = [];
+      let maxTeamWeight = 0;
 
       for (const tw of teamWeights) {
         try {
           const ok = await this.gh.isUserInTeam(tw.teamKey, login);
           if (ok) {
             matchedTeams.push(tw.teamKey);
-            weight = Math.max(weight, tw.weight);
+            maxTeamWeight = Math.max(maxTeamWeight, tw.weight);
           }
         } catch (e: any) {
           teamErrors.push(String(e?.message || e));
         }
+      }
+
+      if (precedence === "max") {
+        weight = Math.max(userWeight, maxTeamWeight);
+      } else if (precedence === "user") {
+        // Only explicit users override teams; default-weight users still benefit from teams.
+        weight = hasExplicitUserWeight ? userWeight : Math.max(userWeight, maxTeamWeight);
+      } else if (precedence === "team") {
+        weight = maxTeamWeight > 0 ? maxTeamWeight : userWeight;
+      } else {
+        // Should be unreachable due to config normalization
+        weight = Math.max(userWeight, maxTeamWeight);
       }
 
       perUser.set(login, { weight, userWeight, matchedTeams });
