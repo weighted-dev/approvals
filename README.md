@@ -131,7 +131,10 @@ Security:
 
 ## Security model
 
-Recommended trigger: `pull_request_target`.
+Recommended trigger depends on your goal:
+
+- `pull_request`: works when the workflow exists only on a feature branch (useful for development/testing). For PRs from forks, permissions may be restricted.
+- `pull_request_target`: more secure for enforcing rules on incoming PRs, but **the workflow must exist on the base branch** (e.g. `main`) to run.
 
 This action loads the config from the **base branch ref** (not from the PR’s head), so a PR can’t lower requirements by editing the config file.
 
