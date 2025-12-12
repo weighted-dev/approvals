@@ -17,3 +17,5 @@ jobs:
       - run: npm run validate:examples
       - run: npm test
       - run: npm run build:all
+      - name: Ensure dist/index.js is up to date
+        run: git diff --exit-code -- dist/index.js

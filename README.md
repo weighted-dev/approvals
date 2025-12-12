@@ -178,4 +178,24 @@ npm run build:all
 
 - Commit `dist/` changes when releasing a new version/tag.
 
+## Releasing
+
+This action is published by pushing git tags. Consumers typically use the major tag:
+
+- `uses: OWNER/weighted-approvals@v1`
+
+Release steps:
+
+```bash
+npm install
+./scripts/release.sh 1.2.3
+# optionally:
+./scripts/release.sh 1.2.3 --push
+```
+
+This will:
+- update `package.json` / `package-lock.json`
+- rebuild and commit `dist/index.js`
+- create tags `v1.2.3` and move `v1`
+
 
