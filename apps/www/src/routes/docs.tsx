@@ -134,7 +134,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: weighted/approvals@v1
+      - uses: weighted-dev/approvals@v1
         with:
           github-token: \${{ secrets.GITHUB_TOKEN }}`;
 
@@ -155,7 +155,7 @@ jobs:
       pull-requests: read
       checks: write
     steps:
-      - uses: weighted/approvals@v1
+      - uses: weighted-dev/approvals@v1
         with:
           github-token: \${{ secrets.GITHUB_TOKEN }}
           # Optional: custom config path
@@ -673,7 +673,7 @@ rules:
           <p className="text-sm" style={{ color: "var(--color-fg-subtle)" }}>
             Need help?{" "}
             <a
-              href="https://github.com/weighted/approvals/issues"
+              href="https://github.com/weighted-dev/approvals/issues"
               className="hover:underline"
               style={{ color: "var(--color-accent-fg)" }}
             >

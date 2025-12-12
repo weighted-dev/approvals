@@ -65,7 +65,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: weighted/approvals@v1
+      - uses: weighted-dev/approvals@v1
         with:
           github-token: \${{ secrets.GITHUB_TOKEN }}`;
 

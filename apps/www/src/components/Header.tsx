@@ -54,7 +54,7 @@ export default function Header() {
                 className="font-semibold text-base"
                 style={{ color: "var(--color-fg-default)" }}
               >
-                weighted-approvals
+                Weighted Approvals
               </span>
               <span
                 className="ml-2 text-xs px-1.5 py-0.5 rounded-full font-medium"
@@ -134,7 +134,7 @@ export default function Header() {
             />
 
             <a
-              href="https://github.com/weighted/approvals"
+              href="https://github.com/weighted-dev/approvals"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-all"
@@ -219,7 +219,7 @@ export default function Header() {
                 Docs
               </Link>
               <a
-                href="https://github.com/weighted/approvals"
+                href="https://github.com/weighted-dev/approvals"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium mt-2 rounded-md"

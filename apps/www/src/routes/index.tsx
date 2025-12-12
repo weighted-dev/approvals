@@ -113,7 +113,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: weighted/approvals@v1`;
+      - uses: weighted-dev/approvals@v1`;
 
 function LandingPage() {
   return (
@@ -161,7 +161,7 @@ function LandingPage() {
               Get started
             </Link>
             <a
-              href="https://github.com/weighted/approvals"
+              href="https://github.com/weighted-dev/approvals"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-secondary flex items-center gap-2"
@@ -410,15 +410,15 @@ function LandingPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
           <p className="text-sm" style={{ color: "var(--color-fg-subtle)" }}>
-            MIT License · Made by{" "}
+            MIT License · Made with ❤️ by{" "}
             <a
-              href="https://tanstack.com"
+              href="https://github.com/weighted-dev"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:underline"
               style={{ color: "var(--color-fg-muted)" }}
             >
-              TanStack
+              weighted-dev
             </a>
           </p>
         </div>
